@@ -14,16 +14,16 @@ const InstructionsPage: React.FC = () => {
       <div className="bg-amber-50 border-2 border-amber-200 p-6 md:p-8 rounded-[2rem] space-y-4 shadow-sm">
         <div className="flex items-center gap-4 text-amber-900">
           <span className="text-3xl">⚠️</span>
-          <h3 className="font-black text-lg uppercase tracking-tight">Aviso Importante: Seus Dados</h3>
+          <h3 className="font-black text-lg uppercase tracking-tight">Portabilidade e Segurança</h3>
         </div>
         <div className="text-sm text-amber-800 space-y-3 font-medium leading-relaxed">
           <p>
-            O ArchiDecide utiliza a tecnologia <strong>Local Storage</strong>. Isso significa que todas as informações que você insere ficam salvas <strong>exclusivamente na memória do navegador do aparelho que você está usando agora</strong>.
+            O ArchiDecide salva os dados apenas no seu navegador atual. Para usar em outro aparelho ou garantir que não perca nada:
           </p>
           <ul className="list-disc ml-5 space-y-1">
-            <li>Se você abrir este site em outro computador, tablet ou celular, os projetos atuais <strong>não estarão lá</strong>.</li>
-            <li>Se você limpar os dados de navegação ou o cache do seu navegador, as informações serão apagadas.</li>
-            <li><strong>Recomendação:</strong> Sempre gere e salve o relatório final em PDF. Ele é a única forma de garantir que seu trabalho esteja seguro e disponível para ser acessado em qualquer lugar.</li>
+            <li><strong>Backup JSON:</strong> Use o botão "Exportar Backup" na tela de projetos. Ele gera um arquivo com todos os seus dados.</li>
+            <li><strong>Importação:</strong> No novo aparelho, clique em "Importar Backup" e selecione o arquivo gerado.</li>
+            <li><strong>PDF não é Backup:</strong> O PDF é um documento de leitura. Ele <strong>não pode</strong> ser lido de volta pelo sistema para edição. Use o arquivo .json para isso.</li>
           </ul>
         </div>
       </div>
@@ -34,7 +34,7 @@ const InstructionsPage: React.FC = () => {
           <span className="text-4xl font-black text-zinc-100 italic select-none">01</span>
           <Card title="Gestão de Projetos" className="flex-1 rounded-[2rem]">
             <p className="text-zinc-600 text-sm leading-relaxed">
-              Na tela inicial, você organiza sua carteira. Cada projeto é um "Estudo de Caso" independente. Use o botão <strong>Duplicar</strong> para testar variações de um mesmo cliente sem perder o histórico do estudo original.
+              Crie estudos independentes. Utilize os botões de <strong>Backup</strong> para transferir seus projetos entre o computador do escritório e seu tablet pessoal.
             </p>
           </Card>
         </div>
@@ -44,7 +44,7 @@ const InstructionsPage: React.FC = () => {
           <span className="text-4xl font-black text-zinc-100 italic select-none">02</span>
           <Card title="Perfil do Cliente" className="flex-1 rounded-[2rem]">
             <p className="text-zinc-600 text-sm leading-relaxed">
-              Aqui você define o "Briefing". Informe o estilo, rotina e orçamento. Ao clicar em <strong>Gerar com Gemini</strong>, a IA criará pilares conceituais baseados na psicologia do seu cliente, que servirão de base para o seu relatório técnico.
+              Defina o briefing. A IA ArchiDecide criará pilares conceituais baseados na rotina do cliente, servindo de base para o relatório editorial.
             </p>
           </Card>
         </div>
@@ -54,7 +54,7 @@ const InstructionsPage: React.FC = () => {
           <span className="text-4xl font-black text-zinc-100 italic select-none">03</span>
           <Card title="Plantas (Alpha vs Beta)" className="flex-1 rounded-[2rem]">
             <p className="text-zinc-600 text-sm leading-relaxed">
-              Este é o coração da ferramenta. Descreva suas duas ideias de layout (Alpha e Beta). A IA fará o papel de um <strong>revisor técnico isento</strong>, comparando áreas, fluxos e iluminação, ajudando você a provar para o cliente qual opção é a mais viável.
+              Compare duas variações de layout. A IA atua como um revisor isento, analisando riscos, fluxos e áreas para facilitar a aprovação do cliente.
             </p>
           </Card>
         </div>
@@ -62,19 +62,9 @@ const InstructionsPage: React.FC = () => {
         {/* PASSO 4 */}
         <div className="flex gap-6 items-start">
           <span className="text-4xl font-black text-zinc-100 italic select-none">04</span>
-          <Card title="Templates de Ambientes" className="flex-1 rounded-[2rem]">
-            <p className="text-zinc-600 text-sm leading-relaxed">
-              Use esta seção para detalhar cômodos específicos (Cozinha, Suíte, etc). A IA sugere materiais, mobiliário e iluminação que se encaixam no orçamento definido, poupando seu tempo na redação de especificações técnicas.
-            </p>
-          </Card>
-        </div>
-
-        {/* PASSO 5 */}
-        <div className="flex gap-6 items-start">
-          <span className="text-4xl font-black text-zinc-100 italic select-none">05</span>
-          <Card title="Exportação e Entrega" className="flex-1 rounded-[2rem] bg-zinc-900 text-white border-none shadow-xl">
+          <Card title="Relatório Editorial" className="flex-1 rounded-[2rem] bg-zinc-900 text-white border-none shadow-xl">
             <p className="text-zinc-300 text-sm leading-relaxed">
-              Na aba de <strong>Relatório</strong>, compile tudo. O sistema organiza as 6 páginas do seu estudo editorial. Clique em <strong>Gerar PDF</strong> para baixar o arquivo. Lembre-se: o PDF é o seu produto final e o backup oficial do seu projeto.
+              O PDF final tem design de consultoria de luxo com 6 páginas. Ele é seu entregável oficial. Lembre-se: gere o PDF sempre que concluir uma etapa importante para ter seu histórico registrado.
             </p>
           </Card>
         </div>
