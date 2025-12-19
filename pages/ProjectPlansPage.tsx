@@ -44,7 +44,7 @@ const PlanForm: React.FC<{
   const colorClass = variant === 'A' ? 'border-t-zinc-900' : 'border-t-blue-500';
 
   return (
-    <div className={`bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-full border-t-4 ${colorClass}`}>
+    <div className={`bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden flex flex-col border-t-4 ${colorClass}`}>
       <div className="px-6 py-4 border-b border-zinc-100 bg-zinc-50/50 flex justify-between items-center">
         <h3 className="font-bold text-zinc-900 flex items-center gap-2">
           <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] text-white ${variant === 'A' ? 'bg-zinc-900' : 'bg-blue-500'}`}>
@@ -54,7 +54,7 @@ const PlanForm: React.FC<{
         </h3>
       </div>
       
-      <div className="p-6 space-y-8 flex-1">
+      <div className="p-6 space-y-6">
         {/* Basic Info Row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="sm:col-span-2">
@@ -62,7 +62,7 @@ const PlanForm: React.FC<{
               label="Nome da Proposta" 
               value={currentPlan.nome} 
               onChange={e => handleChange('nome', e.target.value)}
-              placeholder="Ex: Layout Aberto"
+              placeholder="Ex: Social Integrada"
             />
           </div>
           <Input 
@@ -70,6 +70,17 @@ const PlanForm: React.FC<{
             type="number" 
             value={currentPlan.areaTotal || ''} 
             onChange={e => handleChange('areaTotal', parseFloat(e.target.value))}
+          />
+        </div>
+
+        {/* Technical Concept - NOW AT THE TOP */}
+        <div className="w-full">
+          <Textarea 
+            label="Conceito Técnico / Premissas" 
+            value={currentPlan.observacoes} 
+            onChange={e => handleChange('observacoes', e.target.value)}
+            placeholder="Descreva a lógica por trás desta planta, fluxos, diretrizes de layout..."
+            className="min-h-[100px] w-full text-sm leading-relaxed border-zinc-300 focus:border-zinc-900"
           />
         </div>
 
@@ -85,22 +96,22 @@ const PlanForm: React.FC<{
             </button>
           </div>
           
-          <div className="border border-zinc-100 rounded-xl overflow-hidden shadow-inner bg-zinc-50/30">
+          <div className="border border-zinc-200 rounded-xl overflow-hidden shadow-inner bg-zinc-50/30">
             <div className="max-h-[220px] overflow-y-auto custom-scrollbar">
               {currentPlan.areasPorAmbiente.length === 0 && (
                 <div className="py-8 text-center text-xs text-zinc-400 italic">Lista vazia</div>
               )}
               {currentPlan.areasPorAmbiente.map((amb, index) => (
-                <div key={amb.id} className={`flex items-center gap-2 p-2 ${index !== 0 ? 'border-t border-zinc-50' : ''}`}>
+                <div key={amb.id} className={`flex items-center gap-2 p-2 ${index !== 0 ? 'border-t border-zinc-100' : ''}`}>
                   <input 
-                    className="flex-1 bg-transparent text-sm px-2 py-1 focus:outline-none placeholder:text-zinc-300" 
+                    className="flex-1 bg-transparent text-sm px-2 py-1 focus:outline-none placeholder:text-zinc-300 font-medium" 
                     placeholder="Nome do cômodo"
                     value={amb.nome} 
                     onChange={e => updateAmbiente(amb.id, 'nome', e.target.value)} 
                   />
                   <div className="flex items-center gap-1 bg-white border border-zinc-200 rounded px-2">
                     <input 
-                      className="w-12 text-xs py-1 text-right focus:outline-none" 
+                      className="w-12 text-xs py-1 text-right focus:outline-none font-bold" 
                       type="number"
                       value={amb.area || ''} 
                       onChange={e => updateAmbiente(amb.id, 'area', parseFloat(e.target.value))} 
@@ -116,26 +127,15 @@ const PlanForm: React.FC<{
           </div>
         </div>
 
-        {/* Technical Concept - Full Width Textarea */}
-        <div className="w-full pt-2">
-          <Textarea 
-            label="Conceito Técnico" 
-            value={currentPlan.observacoes} 
-            onChange={e => handleChange('observacoes', e.target.value)}
-            placeholder="Descreva a lógica por trás desta planta, fluxos, diretrizes de layout..."
-            className="min-h-[120px] w-full text-sm leading-relaxed"
-          />
-        </div>
-
         {/* Narrative Section - Strengths/Weaknesses */}
-        <div className="grid grid-cols-1 gap-4 pt-2">
+        <div className="grid grid-cols-1 gap-4">
           <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-2">
             <label className="text-[11px] font-bold text-emerald-700 uppercase tracking-widest flex items-center gap-1.5">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
               Pontos Fortes
             </label>
             <textarea 
-              className="w-full bg-transparent border-none focus:ring-0 text-sm p-0 min-h-[100px] text-emerald-900 placeholder:text-emerald-200 resize-none leading-relaxed"
+              className="w-full bg-transparent border-none focus:ring-0 text-sm p-0 min-h-[80px] text-emerald-900 placeholder:text-emerald-200 resize-none leading-relaxed font-medium"
               placeholder="Vantagens desta opção..."
               value={currentPlan.pontosFortes}
               onChange={e => handleChange('pontosFortes', e.target.value)}
@@ -148,7 +148,7 @@ const PlanForm: React.FC<{
               Pontos Fracos / Desafios
             </label>
             <textarea 
-              className="w-full bg-transparent border-none focus:ring-0 text-sm p-0 min-h-[100px] text-amber-900 placeholder:text-amber-200 resize-none leading-relaxed"
+              className="w-full bg-transparent border-none focus:ring-0 text-sm p-0 min-h-[80px] text-amber-900 placeholder:text-amber-200 resize-none leading-relaxed font-medium"
               placeholder="Limitações ou trade-offs..."
               value={currentPlan.pontosFracos}
               onChange={e => handleChange('pontosFracos', e.target.value)}
@@ -173,7 +173,7 @@ const ProjectPlansPage: React.FC = () => {
   };
 
   const comparison = project.comparison || {
-    criterios: { circulacao: false, integracao: false, privacidade: false, iluminacao: false, ventilacao: false },
+    criterios: { circulacao: false, integracao: false, privacy: false, iluminacao: false, ventilacao: false },
     tabelaComparativaMarkdown: "",
     analiseComparativa: null
   };
@@ -192,7 +192,7 @@ const ProjectPlansPage: React.FC = () => {
     }
     setIsGenerating(true);
     try {
-      const text = await geminiService.generateComparativeAnalysis(geminiConfig || { model: 'gemini-3-pro-preview', lastUpdated: '' }, project);
+      const text = await geminiService.generateComparativeAnalysis(geminiConfig || { model: 'gemini-3-flash-preview', lastUpdated: '' }, project);
       updateProject(project.id, prev => ({
         ...prev,
         comparison: {
@@ -207,9 +207,9 @@ const ProjectPlansPage: React.FC = () => {
           }
         }
       }));
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Erro ao analisar. Verifique sua conexão ou API Key.");
+      alert(err.message || "Erro ao analisar. Verifique sua conexão ou API Key.");
     } finally {
       setIsGenerating(false);
     }
@@ -220,7 +220,7 @@ const ProjectPlansPage: React.FC = () => {
       <div className="flex flex-col md:flex-row items-end justify-between gap-4 border-b border-zinc-200 pb-6">
         <div>
           <h2 className="text-3xl font-black text-zinc-900 tracking-tight">Comparativo de Plantas</h2>
-          <p className="text-zinc-500">Analise as opções A e B para fundamentar sua decisão técnica.</p>
+          <p className="text-zinc-500">Documente as opções A e B para fundamentar sua decisão técnica.</p>
         </div>
       </div>
 

@@ -3,9 +3,11 @@ import { GoogleGenAI } from "@google/genai";
 import { GeminiConfig, Project, ClientProfile, TemplateInput } from "../types/project.ts";
 
 const getClient = () => {
-  // Directly using process.env.API_KEY as required by instructions.
-  // The system handles providing the key here.
-  return new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = process.env.API_KEY;
+  if (!apiKey || apiKey === "") {
+    throw new Error("API Key não configurada. Por favor, clique no botão 'Ativar Gemini' na barra lateral esquerda antes de continuar.");
+  }
+  return new GoogleGenAI({ apiKey });
 };
 
 export const geminiService = {
@@ -23,17 +25,14 @@ export const geminiService = {
       O texto deve ser profissional, estruturado e inspirador. Use bullet points e seções claras.`;
 
       const response = await ai.models.generateContent({
-        model: config.model || 'gemini-3-pro-preview',
+        model: config.model || 'gemini-3-flash-preview',
         contents: prompt,
       });
 
       return response.text || "Não foi possível gerar as diretrizes.";
     } catch (error: any) {
       console.error("Gemini Error:", error);
-      if (error.message?.includes("API Key")) {
-        throw new Error("Erro de Autenticação: Por favor, clique no botão 'Ativar Gemini' na barra lateral.");
-      }
-      throw error;
+      throw new Error(error.message || "Erro desconhecido na API do Gemini.");
     }
   },
 
@@ -51,17 +50,14 @@ export const geminiService = {
       Analise os pontos fortes e fracos de cada uma em relação às necessidades do cliente (${JSON.stringify(project.clientProfile)}). Recomende qual alternativa é mais equilibrada e por quê.`;
 
       const response = await ai.models.generateContent({
-        model: config.model || 'gemini-3-pro-preview',
+        model: config.model || 'gemini-3-flash-preview',
         contents: prompt,
       });
 
       return response.text || "Não foi possível gerar a análise.";
     } catch (error: any) {
       console.error("Gemini Error:", error);
-      if (error.message?.includes("API Key")) {
-        throw new Error("Erro de Autenticação: Por favor, clique no botão 'Ativar Gemini' na barra lateral.");
-      }
-      throw error;
+      throw new Error(error.message || "Erro desconhecido na API do Gemini.");
     }
   },
 
@@ -80,17 +76,14 @@ export const geminiService = {
       4. Sugestões de Materiais/Mobiliário por faixa de preço.`;
 
       const response = await ai.models.generateContent({
-        model: config.model || 'gemini-3-pro-preview',
+        model: config.model || 'gemini-3-flash-preview',
         contents: prompt,
       });
 
       return response.text || "Não foi possível gerar as recomendações.";
     } catch (error: any) {
       console.error("Gemini Error:", error);
-      if (error.message?.includes("API Key")) {
-        throw new Error("Erro de Autenticação: Por favor, clique no botão 'Ativar Gemini' na barra lateral.");
-      }
-      throw error;
+      throw new Error(error.message || "Erro desconhecido na API do Gemini.");
     }
   }
 };
