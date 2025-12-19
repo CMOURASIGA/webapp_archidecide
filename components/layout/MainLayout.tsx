@@ -12,9 +12,19 @@ const MainLayout: React.FC = () => {
 
   useEffect(() => {
     const checkKey = async () => {
+      // Se a chave já existe no processo (Vercel/Env), consideramos autenticado
+      if (process.env.API_KEY && process.env.API_KEY !== "") {
+        setHasApiKey(true);
+        return;
+      }
+      
+      // Caso contrário, checa o ambiente do AI Studio
       if (window.aistudio?.hasSelectedApiKey) {
         const selected = await window.aistudio.hasSelectedApiKey();
         setHasApiKey(selected);
+      } else {
+        // Se não houver nem env nem aistudio, assume falso para mostrar o botão
+        setHasApiKey(false);
       }
     };
     checkKey();
@@ -24,6 +34,8 @@ const MainLayout: React.FC = () => {
     if (window.aistudio?.openSelectKey) {
       await window.aistudio.openSelectKey();
       setHasApiKey(true);
+    } else {
+      alert("Ambiente de ativação não detectado. Certifique-se de que a API_KEY está configurada corretamente no Vercel.");
     }
   };
 
@@ -69,8 +81,8 @@ const MainLayout: React.FC = () => {
         {!hasApiKey && (
           <div className="p-4 m-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
             <p className="text-[10px] text-amber-800 font-bold uppercase">IA Desativada</p>
-            <p className="text-[10px] text-amber-700">Clique abaixo para ativar as funções de IA.</p>
-            <Button variant="secondary" className="w-full text-[10px] py-1 h-auto bg-white border-amber-300" onClick={handleSelectKey}>
+            <p className="text-[10px] text-amber-700 leading-tight">Chave não encontrada no Vercel ou AI Studio.</p>
+            <Button variant="secondary" className="w-full text-[10px] py-1.5 h-auto bg-white border-amber-300 hover:bg-amber-100" onClick={handleSelectKey}>
               Ativar Gemini
             </Button>
           </div>
