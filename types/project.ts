@@ -31,10 +31,31 @@ export interface PropertyInfo {
 export interface GeneratedTextSection {
   id: string;
   title: string;
-  content: string;
+  content: string; // Pode ser Markdown ou JSON stringificado
   createdAt: string;
   updatedAt: string;
   source: "manual" | "gemini";
+}
+
+export interface StructuredAnalysis {
+  recomendacao: {
+    planta: "Alpha" | "Beta";
+    motivo: string;
+  };
+  placar: {
+    criterio: string;
+    vencedora: "Alpha" | "Beta" | "Empate";
+  }[];
+  detalhes: {
+    criterio: string;
+    analiseAlpha: string;
+    analiseBeta: string;
+    conclusao: string;
+  }[];
+  riscosMitigacoes: {
+    risco: string;
+    ajusteSugerido: string;
+  }[];
 }
 
 export interface AreaPorAmbiente {

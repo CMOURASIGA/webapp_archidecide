@@ -4,8 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useProjectStore } from '../store/useProjectStore.ts';
 import { Button, Card, Input, Checkbox } from '../components/common/UI.tsx';
 import { geminiService } from '../services/geminiService.ts';
-import { PlanAlternative, AreaPorAmbiente, ComparisonCriteria } from '../types/project.ts';
-import { marked } from 'marked';
+import { PlanAlternative, AreaPorAmbiente, ComparisonCriteria, StructuredAnalysis } from '../types/project.ts';
 
 const PlanForm: React.FC<{ 
   plan: PlanAlternative | null, 
@@ -97,13 +96,10 @@ const PlanForm: React.FC<{
           
           <div className="border border-zinc-100 rounded-3xl overflow-hidden bg-zinc-50/20 p-2">
             <div className="max-h-[300px] overflow-y-auto custom-scrollbar space-y-1">
-              {currentPlan.areasPorAmbiente.length === 0 && (
-                <div className="py-10 text-center text-[10px] text-zinc-300 font-bold italic uppercase tracking-widest">Nenhum cômodo listado</div>
-              )}
               {currentPlan.areasPorAmbiente.map((amb, index) => (
-                <div key={amb.id} className="flex items-center gap-3 p-2 bg-white rounded-xl border border-zinc-50 shadow-sm transition-all hover:border-zinc-200">
+                <div key={amb.id} className="flex items-center gap-3 p-2 bg-white rounded-xl border border-zinc-50 shadow-sm">
                   <div className="w-5 text-[9px] font-black text-zinc-300 flex-shrink-0 text-center">{index + 1}</div>
-                  <input className="flex-1 bg-transparent text-[12px] px-1 py-1 focus:outline-none font-bold text-zinc-800" placeholder="Nome..." value={amb.nome} onChange={e => updateAmbiente(amb.id, 'nome', e.target.value)} />
+                  <input className="flex-1 bg-transparent text-[12px] px-1 py-1 focus:outline-none font-bold text-zinc-800" value={amb.nome} onChange={e => updateAmbiente(amb.id, 'nome', e.target.value)} />
                   <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-100 rounded-lg px-3 py-0.5">
                     <input className="w-10 text-[11px] py-1 text-right bg-transparent focus:outline-none font-black text-zinc-900" type="number" value={amb.area || ''} onChange={e => updateAmbiente(amb.id, 'area', parseFloat(e.target.value))} />
                     <span className="text-[9px] text-zinc-400 font-black uppercase">m²</span>
@@ -116,17 +112,6 @@ const PlanForm: React.FC<{
             </div>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 gap-4 pt-4 border-t border-zinc-100">
-          <div className="p-4 bg-emerald-50/30 rounded-2xl border border-emerald-50">
-            <label className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-2 block">PONTOS FORTES</label>
-            <textarea className="w-full bg-transparent border-none focus:ring-0 text-[12px] p-0 min-h-[60px] text-emerald-950 resize-none font-bold" placeholder="..." value={currentPlan.pontosFortes} onChange={e => handleChange('pontosFortes', e.target.value)} />
-          </div>
-          <div className="p-4 bg-amber-50/30 rounded-2xl border border-amber-50">
-            <label className="text-[9px] font-black text-amber-600 uppercase tracking-widest mb-2 block">DESAFIOS</label>
-            <textarea className="w-full bg-transparent border-none focus:ring-0 text-[12px] p-0 min-h-[60px] text-amber-950 resize-none font-bold" placeholder="..." value={currentPlan.pontosFracos} onChange={e => handleChange('pontosFracos', e.target.value)} />
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -137,13 +122,8 @@ const ProjectPlansPage: React.FC = () => {
   const { projects, updateProject, geminiConfig } = useProjectStore();
   const project = projects.find(p => p.id === projectId);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
 
   if (!project) return <div>Projeto não encontrado.</div>;
-
-  const handleUpdatePlan = (key: 'planA' | 'planB', data: PlanAlternative) => {
-    updateProject(project.id, prev => ({ ...prev, [key]: data }));
-  };
 
   const comparison = project.comparison || {
     criterios: { circulacao: false, integracao: false, privacidade: false, iluminacao: false, ventilacao: false },
@@ -151,30 +131,29 @@ const ProjectPlansPage: React.FC = () => {
     analiseComparativa: null
   };
 
-  const handleCriteriaChange = (key: keyof ComparisonCriteria, val: any) => {
-    updateProject(project.id, prev => ({
-      ...prev,
-      comparison: { ...comparison, criterios: { ...comparison.criterios, [key]: val } }
-    }));
-  };
+  const structuredData: StructuredAnalysis | null = useMemo(() => {
+    if (!comparison.analiseComparativa?.content) return null;
+    try {
+      return JSON.parse(comparison.analiseComparativa.content);
+    } catch (e) {
+      console.error("Erro ao processar dados da IA", e);
+      return null;
+    }
+  }, [comparison.analiseComparativa?.content]);
 
   const handleGenerateAnalysis = async () => {
-    if (!project.planA || !project.planB) {
-      alert("Preencha ambas as alternativas antes de comparar.");
-      return;
-    }
+    if (!project.planA || !project.planB) return alert("Preencha ambas as alternativas.");
     setIsGenerating(true);
-    setIsEditMode(false);
     try {
-      const text = await geminiService.generateComparativeAnalysis(geminiConfig || { model: 'gemini-3-flash-preview', lastUpdated: '' }, project);
+      const jsonStr = await geminiService.generateComparativeAnalysis(geminiConfig || { model: 'gemini-3-flash-preview', lastUpdated: '' }, project);
       updateProject(project.id, prev => ({
         ...prev,
         comparison: {
           ...comparison,
           analiseComparativa: {
             id: crypto.randomUUID(),
-            title: "Argumentação Técnica IA",
-            content: text,
+            title: "Argumentação Técnica",
+            content: jsonStr,
             source: "gemini",
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
@@ -188,10 +167,12 @@ const ProjectPlansPage: React.FC = () => {
     }
   };
 
-  const renderedAnalysis = useMemo(() => {
-    if (!comparison.analiseComparativa?.content) return null;
-    return marked.parse(comparison.analiseComparativa.content);
-  }, [comparison.analiseComparativa?.content]);
+  const handleCriteriaChange = (key: keyof ComparisonCriteria, val: any) => {
+    updateProject(project.id, prev => ({
+      ...prev,
+      comparison: { ...comparison, criterios: { ...comparison.criterios, [key]: val } }
+    }));
+  };
 
   return (
     <div className="space-y-16 pb-32">
@@ -201,22 +182,15 @@ const ProjectPlansPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-        <PlanForm variant="A" title="Conceito Alpha" plan={project.planA} onUpdate={data => handleUpdatePlan('planA', data)} />
-        <PlanForm variant="B" title="Conceito Beta" plan={project.planB} onUpdate={data => handleUpdatePlan('planB', data)} />
+        <PlanForm variant="A" title="Conceito Alpha" plan={project.planA} onUpdate={data => updateProject(project.id, p => ({...p, planA: data}))} />
+        <PlanForm variant="B" title="Conceito Beta" plan={project.planB} onUpdate={data => updateProject(project.id, p => ({...p, planB: data}))} />
       </div>
 
       <Card className="shadow-2xl overflow-hidden bg-white rounded-[2.5rem] border-none ring-1 ring-zinc-100">
         <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[800px]">
           {/* Sidebar Filtros */}
           <div className="lg:col-span-3 p-10 bg-zinc-50 border-r border-zinc-100 space-y-10">
-            <div className="space-y-2">
-              <h3 className="text-[10px] font-black text-zinc-900 uppercase tracking-[0.2em] flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-zinc-900 rounded-full"></span>
-                Eixos de Análise
-              </h3>
-              <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-tight italic">Selecione as prioridades técnicas</p>
-            </div>
-            
+            <h3 className="text-[10px] font-black text-zinc-900 uppercase tracking-[0.2em]">Eixos de Análise</h3>
             <div className="space-y-4">
               <Checkbox label="Fluxos e Setorização" checked={comparison.criterios.circulacao} onChange={e => handleCriteriaChange('circulacao', e.target.checked)} />
               <Checkbox label="Integração Social" checked={comparison.criterios.integracao} onChange={e => handleCriteriaChange('integracao', e.target.checked)} />
@@ -224,77 +198,120 @@ const ProjectPlansPage: React.FC = () => {
               <Checkbox label="Iluminação Natural" checked={comparison.criterios.iluminacao} onChange={e => handleCriteriaChange('iluminacao', e.target.checked)} />
               <Checkbox label="Eficiência Térmica" checked={comparison.criterios.ventilacao} onChange={e => handleCriteriaChange('ventilacao', e.target.checked)} />
             </div>
-            
-            <div className="pt-6 border-t border-zinc-200 space-y-3">
-               <Button className="w-full py-5 font-black text-xs shadow-xl hover:scale-[1.03] transition-all bg-zinc-900 uppercase tracking-widest" onClick={handleGenerateAnalysis} isLoading={isGenerating}>🚀 ANALISAR COM IA</Button>
-               {comparison.analiseComparativa && (
-                 <button onClick={() => setIsEditMode(!isEditMode)} className="w-full text-[9px] font-black uppercase tracking-[0.2em] text-zinc-300 hover:text-zinc-900 transition-colors flex items-center justify-center gap-2 py-2">
-                   {isEditMode ? "💾 Gravar Alterações" : "📝 Abrir Modo Edição"}
-                 </button>
-               )}
-            </div>
+            <Button className="w-full py-5 font-black text-xs shadow-xl bg-zinc-900" onClick={handleGenerateAnalysis} isLoading={isGenerating}>🚀 ANALISAR COM IA</Button>
           </div>
 
-          {/* Área do Relatório - Papel Técnico */}
-          <div className="lg:col-span-9 bg-[#f4f4f5] p-12 overflow-y-auto custom-scrollbar-light h-[800px]">
-             <div className="report-paper relative animate-in fade-in zoom-in-95 duration-700">
-               {/* Watermark sutil */}
-               <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none select-none overflow-hidden">
-                  <span className="text-[150px] font-black italic uppercase -rotate-45 whitespace-nowrap">DOCUMENTO TÉCNICO</span>
-               </div>
-
-               {/* Header Editorial */}
-               <div className="border-b border-zinc-900 pb-4 mb-10 flex justify-between items-end">
+          {/* Área do Relatório - Papel Técnico Estruturado */}
+          <div className="lg:col-span-9 bg-[#f8f8f8] p-12 overflow-y-auto h-[800px] custom-scrollbar-light">
+             <div className="report-paper relative">
+               
+               {/* BLOCO 1 - Cabeçalho Funcional */}
+               <div className="border-b-2 border-zinc-900 pb-6 mb-12 flex justify-between items-end">
                  <div>
-                   <h1 className="text-3xl font-black text-zinc-900 tracking-tighter italic uppercase m-0 leading-none">Análise Comparativa</h1>
-                   <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mt-2">Versão {project.version} • ArchiDecide Intelligence</div>
+                   <h1 className="text-3xl font-black text-zinc-900 uppercase italic tracking-tighter m-0">Parecer de Inteligência</h1>
+                   <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.3em] mt-1">Ref: {project.nome} • v{project.version}</div>
                  </div>
-                 <div className="text-right">
-                    <div className="text-[9px] font-black text-zinc-300 uppercase tracking-widest">Projeto</div>
-                    <div className="text-xs font-bold text-zinc-800 uppercase">{project.nome}</div>
-                 </div>
+                 <div className="bg-zinc-900 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest">Confidencial</div>
                </div>
 
-               {/* Conteúdo Renderizado */}
-               <div className="relative z-10">
-                 {comparison.analiseComparativa ? (
-                   isEditMode ? (
-                     <textarea 
-                       className="w-full h-[600px] bg-zinc-50 p-8 rounded-xl border border-zinc-200 text-zinc-800 focus:ring-1 focus:ring-zinc-900 font-mono text-[11px] leading-relaxed resize-none shadow-inner"
-                       value={comparison.analiseComparativa.content}
-                       onChange={e => updateProject(project.id, prev => ({
-                         ...prev,
-                         comparison: {
-                           ...comparison,
-                           analiseComparativa: { ...comparison.analiseComparativa!, content: e.target.value }
-                         }
-                       }))}
-                       placeholder="Edite o Markdown aqui..."
-                     />
-                   ) : (
-                     <div 
-                       className="prose max-w-none"
-                       dangerouslySetInnerHTML={{ __html: renderedAnalysis as string }} 
-                     />
-                   )
-                 ) : (
-                   <div className="h-[400px] flex flex-col items-center justify-center text-center space-y-6 opacity-30">
-                     <div className="w-16 h-16 border-4 border-dashed border-zinc-200 rounded-2xl flex items-center justify-center text-2xl font-black">?</div>
-                     <div className="space-y-1">
-                       <p className="uppercase tracking-[0.3em] font-black text-[10px]">Aguardando Entrada de Dados</p>
-                       <p className="text-[9px] font-bold text-zinc-400 italic">Configure as plantas e clique em analisar.</p>
+               {structuredData ? (
+                 <div className="space-y-14 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                   
+                   {/* BLOCO 2 - Decisão Recomendada */}
+                   <div className="bg-zinc-900 text-white p-8 rounded-3xl shadow-2xl relative overflow-hidden group">
+                     <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                        <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                     </div>
+                     <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-2">Recomendação Técnica</h4>
+                     <div className="text-3xl font-black italic uppercase tracking-tighter mb-4">
+                       Opção Recomendada: <span className="text-emerald-400">Planta {structuredData.recomendacao.planta}</span>
+                     </div>
+                     <p className="text-zinc-400 text-sm font-medium leading-relaxed max-w-2xl">
+                       {structuredData.recomendacao.motivo}
+                     </p>
+                   </div>
+
+                   {/* BLOCO 3 - Placar Visual */}
+                   <div className="space-y-4">
+                     <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-900 border-l-4 border-zinc-900 pl-3">Placar por Critério</h4>
+                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                       {structuredData.placar.map((p, i) => (
+                         <div key={i} className="bg-white border border-zinc-200 p-4 rounded-2xl flex flex-col items-center text-center shadow-sm">
+                           <span className="text-[9px] font-black text-zinc-400 uppercase mb-2 truncate w-full">{p.criterio}</span>
+                           <div className={`text-xs font-black uppercase px-3 py-1 rounded-full ${p.vencedora === 'Empate' ? 'bg-zinc-100 text-zinc-400' : 'bg-emerald-50 text-emerald-600'}`}>
+                             {p.vencedora}
+                           </div>
+                         </div>
+                       ))}
                      </div>
                    </div>
-                 )}
-               </div>
 
-               {/* Footer Editorial */}
-               {comparison.analiseComparativa && !isEditMode && (
-                 <div className="mt-20 pt-6 border-t border-zinc-100 flex justify-between items-center opacity-40">
-                   <div className="text-[9px] font-black text-zinc-300 uppercase tracking-widest italic">Confidencial • Apenas para uso profissional</div>
-                   <div className="text-[9px] font-black text-zinc-300 uppercase tracking-widest">{new Date().toLocaleDateString('pt-BR')}</div>
+                   {/* BLOCO 4 - Análise por Critério Detalhada */}
+                   <div className="space-y-8">
+                      <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-900 border-l-4 border-zinc-900 pl-3">Detalhamento Técnico</h4>
+                      {structuredData.detalhes.map((det, i) => (
+                        <div key={i} className="bg-white border border-zinc-100 rounded-3xl overflow-hidden shadow-sm">
+                           <div className="bg-zinc-50 px-6 py-3 border-b border-zinc-100">
+                             <h5 className="text-[11px] font-black uppercase text-zinc-800 tracking-wider">{det.criterio}</h5>
+                           </div>
+                           <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-zinc-100">
+                             <div className="p-6">
+                               <div className="text-[10px] font-black text-zinc-300 uppercase mb-2">Planta Alpha</div>
+                               <p className="text-xs text-zinc-600 leading-relaxed font-medium">{det.analiseAlpha}</p>
+                             </div>
+                             <div className="p-6">
+                               <div className="text-[10px] font-black text-zinc-300 uppercase mb-2">Planta Beta</div>
+                               <p className="text-xs text-zinc-600 leading-relaxed font-medium">{det.analiseBeta}</p>
+                             </div>
+                           </div>
+                           <div className="bg-zinc-900/5 px-6 py-3 border-t border-zinc-100 italic text-[11px] text-zinc-500 font-bold">
+                             Veredito: {det.conclusao}
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+
+                   {/* BLOCO 5 - Riscos e Mitigações */}
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div className="bg-amber-50/50 border border-amber-100 p-8 rounded-[2rem]">
+                        <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-800 mb-4 flex items-center gap-2">
+                          <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                          Alerta de Risco
+                        </h4>
+                        <ul className="space-y-4">
+                          {structuredData.riscosMitigacoes.map((item, i) => (
+                            <li key={i} className="text-xs text-amber-950 font-medium leading-relaxed">
+                              {item.risco}
+                            </li>
+                          ))}
+                        </ul>
+                     </div>
+                     <div className="bg-blue-50/50 border border-blue-100 p-8 rounded-[2rem]">
+                        <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-800 mb-4">Ajustes Sugeridos</h4>
+                        <ul className="space-y-4">
+                          {structuredData.riscosMitigacoes.map((item, i) => (
+                            <li key={i} className="text-xs text-blue-950 font-bold leading-relaxed flex items-start gap-2">
+                              <span className="text-blue-400">→</span>
+                              {item.ajusteSugerido}
+                            </li>
+                          ))}
+                        </ul>
+                     </div>
+                   </div>
+
+                 </div>
+               ) : (
+                 <div className="h-[500px] flex flex-col items-center justify-center text-center opacity-20">
+                    <div className="text-7xl mb-6">📐</div>
+                    <p className="uppercase tracking-[0.4em] font-black text-[10px]">Aguardando Processamento</p>
                  </div>
                )}
+
+               {/* Footer */}
+               <div className="mt-20 pt-8 border-t border-zinc-100 flex justify-between items-center opacity-30">
+                 <span className="text-[9px] font-black uppercase tracking-widest">ArchiDecide Professional Report</span>
+                 <span className="text-[9px] font-black uppercase tracking-widest">{new Date().toLocaleDateString('pt-BR')}</span>
+               </div>
              </div>
           </div>
         </div>
@@ -305,7 +322,7 @@ const ProjectPlansPage: React.FC = () => {
           <Button variant="ghost" className="px-10 font-bold text-zinc-400 hover:text-zinc-900">Retornar ao Perfil</Button>
         </Link>
         <Link to={`/projects/${projectId}/templates`}>
-          <Button className="px-16 py-6 font-black text-xl shadow-2xl hover:scale-105 active:scale-95 transition-all">
+          <Button className="px-16 py-6 font-black text-xl shadow-2xl hover:scale-105 transition-all">
             Estudos de Ambientes →
           </Button>
         </Link>
