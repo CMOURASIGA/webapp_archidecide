@@ -1,15 +1,15 @@
 
 import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import MainLayout from './components/layout/MainLayout';
-import ProjectsPage from './pages/ProjectsPage';
-import InstructionsPage from './pages/InstructionsPage';
-import ProjectProfilePage from './pages/ProjectProfilePage';
-import ProjectPlansPage from './pages/ProjectPlansPage';
-import ProjectTemplatesPage from './pages/ProjectTemplatesPage';
-import ProjectReportPage from './pages/ProjectReportPage';
-import SettingsGeminiPage from './pages/SettingsGeminiPage';
-import { useProjectStore } from './store/useProjectStore';
+import MainLayout from './components/layout/MainLayout.tsx';
+import ProjectsPage from './pages/ProjectsPage.tsx';
+import InstructionsPage from './pages/InstructionsPage.tsx';
+import ProjectProfilePage from './pages/ProjectProfilePage.tsx';
+import ProjectPlansPage from './pages/ProjectPlansPage.tsx';
+import ProjectTemplatesPage from './pages/ProjectTemplatesPage.tsx';
+import ProjectReportPage from './pages/ProjectReportPage.tsx';
+import SettingsGeminiPage from './pages/SettingsGeminiPage.tsx';
+import { useProjectStore } from './store/useProjectStore.ts';
 
 const App: React.FC = () => {
   const { loadInitialData } = useProjectStore();

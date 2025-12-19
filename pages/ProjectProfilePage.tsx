@@ -1,14 +1,13 @@
 
 import React, { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useProjectStore } from '../store/useProjectStore';
-import { Button, Card, Input, Select, Textarea } from '../components/common/UI';
-import { geminiService } from '../services/geminiService';
-import { ClientProfile, PropertyInfo, ClientType, BudgetLevel, PropertyType } from '../types/project';
+import { useParams, Link } from 'react-router-dom';
+import { useProjectStore } from '../store/useProjectStore.ts';
+import { Button, Card, Input, Select, Textarea } from '../components/common/UI.tsx';
+import { geminiService } from '../services/geminiService.ts';
+import { ClientProfile, PropertyInfo, ClientType, BudgetLevel, PropertyType } from '../types/project.ts';
 
 const ProjectProfilePage: React.FC = () => {
   const { projectId } = useParams();
-  const navigate = useNavigate();
   const { projects, updateProject, geminiConfig } = useProjectStore();
   const project = projects.find(p => p.id === projectId);
   
@@ -56,10 +55,6 @@ const ProjectProfilePage: React.FC = () => {
   };
 
   const handleGenerateGuidelines = async () => {
-    if (!process.env.API_KEY) {
-      alert("Chave API não configurada no ambiente.");
-      return;
-    }
     setIsGenerating(true);
     try {
       const text = await geminiService.generateGuidelines(geminiConfig || { model: 'gemini-3-pro-preview', lastUpdated: '' }, project);
@@ -67,7 +62,7 @@ const ProjectProfilePage: React.FC = () => {
         ...prev,
         diretrizesGerais: {
           id: crypto.randomUUID(),
-          title: "Diretrizes Sugeridas pela IA",
+          title: "Diretrizes",
           content: text,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -96,13 +91,13 @@ const ProjectProfilePage: React.FC = () => {
               <option value="outro">Outro</option>
             </Select>
             <Input label="Nº de Moradores" type="number" value={profile.numeroMoradores || 1} onChange={e => handleProfileChange('numeroMoradores', parseInt(e.target.value))} />
-            <Input label="Estilo Desejado" value={profile.estiloDesejado} onChange={e => handleProfileChange('estiloDesejado', e.target.value)} placeholder="Ex: Minimalista Escandinavo" />
+            <Input label="Estilo Desejado" value={profile.estiloDesejado} onChange={e => handleProfileChange('estiloDesejado', e.target.value)} placeholder="Ex: Moderno e Minimalista" />
             <Select label="Orçamento" value={profile.orcamento} onChange={e => handleProfileChange('orcamento', e.target.value as BudgetLevel)}>
-              <option value="baixo">Baixo (Custo-benefício)</option>
-              <option value="medio">Médio (Intermediário)</option>
+              <option value="baixo">Baixo (Econômico)</option>
+              <option value="medio">Médio (Equilibrado)</option>
               <option value="alto">Alto (Alto Padrão)</option>
             </Select>
-            <Textarea label="Rotina & Hábitos" value={profile.rotina} onChange={e => handleProfileChange('rotina', e.target.value)} placeholder="Ex: Trabalham de casa, recebem amigos nos finais de semana..." />
+            <Textarea label="Rotina & Hábitos" value={profile.rotina} onChange={e => handleProfileChange('rotina', e.target.value)} placeholder="Ex: Trabalham de casa, recebem muitos convidados..." />
             
             <div className="space-y-2">
               <label className="text-sm font-medium text-zinc-700">Prioridades do Projeto</label>
@@ -133,42 +128,51 @@ const ProjectProfilePage: React.FC = () => {
               <Input label="Quartos" type="number" value={info.numeroQuartos || ''} onChange={e => handleInfoChange('numeroQuartos', parseInt(e.target.value))} />
               <Input label="Banheiros" type="number" value={info.numeroBanheiros || ''} onChange={e => handleInfoChange('numeroBanheiros', parseInt(e.target.value))} />
             </div>
-            <Textarea label="Restrições & Observações" value={info.restricoesRelevantes} onChange={e => handleInfoChange('restricoesRelevantes', e.target.value)} placeholder="Ex: Recuo frontal de 5m, condomínio não permite..." />
+            <Textarea label="Restrições & Observações" value={info.restricoesRelevantes} onChange={e => handleInfoChange('restricoesRelevantes', e.target.value)} placeholder="Recuos, regras de condomínio, topografia..." />
           </div>
         </Card>
       </div>
 
-      <Card title="Diretrizes do Projeto">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-zinc-500">Defina os pilares fundamentais para o desenvolvimento do projeto.</p>
-            <Button variant="secondary" onClick={handleGenerateGuidelines} isLoading={isGenerating}>
+      <Card>
+        <div className="space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-100 pb-4">
+            <div>
+              <h3 className="text-xl font-bold text-zinc-900">Diretrizes do Projeto</h3>
+              <p className="text-sm text-zinc-500 italic">Defina os pilares conceituais da sua proposta arquitetônica.</p>
+            </div>
+            <Button variant="secondary" onClick={handleGenerateGuidelines} isLoading={isGenerating} className="shadow-sm">
               ✨ Gerar com Gemini
             </Button>
           </div>
-          <Textarea 
-            className="min-h-[400px] w-full font-mono text-sm leading-relaxed"
-            value={project.diretrizesGerais?.content || ""}
-            onChange={e => updateProject(project.id, prev => ({
-              ...prev,
-              diretrizesGerais: {
-                id: prev.diretrizesGerais?.id || crypto.randomUUID(),
-                title: "Diretrizes",
-                content: e.target.value,
-                source: "manual",
-                createdAt: prev.diretrizesGerais?.createdAt || new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-              }
-            }))}
-            placeholder="Aguardando diretrizes ou digite aqui suas observações técnicas..."
-          />
+          
+          <div className="relative group">
+            <Textarea 
+              className="min-h-[500px] w-full font-mono text-sm leading-relaxed p-8 bg-zinc-50/50 focus:bg-white border-zinc-200 transition-all rounded-xl resize-y shadow-inner"
+              value={project.diretrizesGerais?.content || ""}
+              onChange={e => updateProject(project.id, prev => ({
+                ...prev,
+                diretrizesGerais: {
+                  id: prev.diretrizesGerais?.id || crypto.randomUUID(),
+                  title: "Diretrizes",
+                  content: e.target.value,
+                  source: "manual",
+                  createdAt: prev.diretrizesGerais?.createdAt || new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+                }
+              }))}
+              placeholder="Digite aqui as premissas do projeto, conceitos estéticos e técnicos..."
+            />
+            <div className="absolute top-4 right-4 text-[10px] text-zinc-300 font-mono uppercase tracking-[0.2em] pointer-events-none select-none">
+              Workspace do Arquiteto
+            </div>
+          </div>
         </div>
       </Card>
 
       <div className="flex justify-end pt-4">
         <Link to={`/projects/${projectId}/plans`}>
-          <Button className="px-8 py-3 shadow-lg">
-            Próximo Passo: Comparar Plantas 📐
+          <Button className="px-12 py-5 shadow-2xl text-xl hover:scale-[1.02] transition-transform">
+            Próximo Passo: Plantas A vs B 📐
           </Button>
         </Link>
       </div>
