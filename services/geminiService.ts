@@ -4,7 +4,7 @@ import { GeminiConfig, Project, ClientProfile, TemplateInput } from "../types/pr
 
 /**
  * Serviço de integração com Google Gemini.
- * Focado em gerar dados estruturados para decisões arquitetônicas.
+ * Focado em gerar dados estruturados para decisões arquitetônicas e relatórios editoriais de alto padrão.
  */
 export const geminiService = {
   generateGuidelines: async (config: GeminiConfig, project: Project) => {
@@ -16,7 +16,8 @@ export const geminiService = {
     Imóvel: ${JSON.stringify(project.propertyInfo)}
     
     REGRAS DE ESCRITA:
-    - Seja conciso e direto ao ponto.
+    - Use títulos claros para: Conceito, Decisões de Layout, Prioridades Técnicas e Pontos de Atenção.
+    - Seja conciso (bullets). Estilo editorial de luxo.
     - Responda em Português (Brasil).`;
 
     const response = await ai.models.generateContent({
@@ -32,7 +33,7 @@ export const geminiService = {
     
     const response = await ai.models.generateContent({
       model: config.model || 'gemini-3-flash-preview',
-      contents: `Compare criticamente a Planta Alpha e a Planta Beta para este cliente.
+      contents: `Você é um estrategista em viabilidade arquitetônica. Compare criticamente a Planta Alpha e a Planta Beta.
       Alpha: ${JSON.stringify(project.planA)}
       Beta: ${JSON.stringify(project.planB)}
       Critérios: ${JSON.stringify(project.comparison?.criterios)}`,
@@ -45,7 +46,7 @@ export const geminiService = {
               type: Type.OBJECT,
               properties: {
                 planta: { type: Type.STRING, description: "Alpha ou Beta" },
-                motivo: { type: Type.STRING, description: "Explicação curta do porquê" }
+                motivo: { type: Type.STRING, description: "Uma justificativa executiva poderosa de no máximo 3 linhas." }
               },
               required: ["planta", "motivo"]
             },
@@ -66,9 +67,9 @@ export const geminiService = {
                 type: Type.OBJECT,
                 properties: {
                   criterio: { type: Type.STRING },
-                  analiseAlpha: { type: Type.STRING },
-                  analiseBeta: { type: Type.STRING },
-                  conclusao: { type: Type.STRING }
+                  analiseAlpha: { type: Type.STRING, description: "Análise técnica concisa (max 4 linhas)." },
+                  analiseBeta: { type: Type.STRING, description: "Análise técnica concisa (max 4 linhas)." },
+                  conclusao: { type: Type.STRING, description: "Uma frase de veredito definitiva." }
                 },
                 required: ["criterio", "analiseAlpha", "analiseBeta", "conclusao"]
               }
@@ -97,7 +98,7 @@ export const geminiService = {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: config.model || 'gemini-3-flash-preview',
-      contents: `Recomendações técnicas: ${templateInput.templateType}. Entrada: ${JSON.stringify(templateInput)}.`,
+      contents: `Recomendações técnicas: ${templateInput.templateType}. Perfil: ${JSON.stringify(profile)}.`,
     });
     return response.text || "";
   }

@@ -152,7 +152,7 @@ const ProjectPlansPage: React.FC = () => {
           ...comparison,
           analiseComparativa: {
             id: crypto.randomUUID(),
-            title: "Argumentação Técnica",
+            title: "Parecer Técnico",
             content: jsonStr,
             source: "gemini",
             createdAt: new Date().toISOString(),
@@ -176,9 +176,12 @@ const ProjectPlansPage: React.FC = () => {
 
   return (
     <div className="space-y-16 pb-32">
-      <div className="border-b border-zinc-200 pb-10">
-        <h2 className="text-5xl font-black text-zinc-900 tracking-tighter uppercase italic">Estudo Comparativo</h2>
-        <p className="text-zinc-500 mt-4 text-xl font-medium">Contraste as propostas A e B para fundamentar a viabilidade técnica.</p>
+      {/* BLOCO 1 - Cabeçalho Funcional */}
+      <div className="border-b border-zinc-200 pb-10 flex justify-between items-end">
+        <div>
+          <h2 className="text-5xl font-black text-zinc-900 tracking-tighter uppercase italic">Estudo Comparativo</h2>
+          <p className="text-zinc-500 mt-2 text-sm font-medium">Projeto: {project.nome} • v{project.version}</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
@@ -186,11 +189,10 @@ const ProjectPlansPage: React.FC = () => {
         <PlanForm variant="B" title="Conceito Beta" plan={project.planB} onUpdate={data => updateProject(project.id, p => ({...p, planB: data}))} />
       </div>
 
-      <Card className="shadow-2xl overflow-hidden bg-white rounded-[2.5rem] border-none ring-1 ring-zinc-100">
-        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[800px]">
-          {/* Sidebar Filtros */}
-          <div className="lg:col-span-3 p-10 bg-zinc-50 border-r border-zinc-100 space-y-10">
-            <h3 className="text-[10px] font-black text-zinc-900 uppercase tracking-[0.2em]">Eixos de Análise</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <div className="lg:col-span-3">
+          <Card className="p-8 rounded-[2rem] bg-zinc-50 border-none ring-1 ring-zinc-200 sticky top-10">
+            <h3 className="text-[10px] font-black text-zinc-900 uppercase tracking-[0.2em] mb-8">Eixos de Análise</h3>
             <div className="space-y-4">
               <Checkbox label="Fluxos e Setorização" checked={comparison.criterios.circulacao} onChange={e => handleCriteriaChange('circulacao', e.target.checked)} />
               <Checkbox label="Integração Social" checked={comparison.criterios.integracao} onChange={e => handleCriteriaChange('integracao', e.target.checked)} />
@@ -198,134 +200,117 @@ const ProjectPlansPage: React.FC = () => {
               <Checkbox label="Iluminação Natural" checked={comparison.criterios.iluminacao} onChange={e => handleCriteriaChange('iluminacao', e.target.checked)} />
               <Checkbox label="Eficiência Térmica" checked={comparison.criterios.ventilacao} onChange={e => handleCriteriaChange('ventilacao', e.target.checked)} />
             </div>
-            <Button className="w-full py-5 font-black text-xs shadow-xl bg-zinc-900" onClick={handleGenerateAnalysis} isLoading={isGenerating}>🚀 ANALISAR COM IA</Button>
-          </div>
-
-          {/* Área do Relatório - Papel Técnico Estruturado */}
-          <div className="lg:col-span-9 bg-[#f8f8f8] p-12 overflow-y-auto h-[800px] custom-scrollbar-light">
-             <div className="report-paper relative">
-               
-               {/* BLOCO 1 - Cabeçalho Funcional */}
-               <div className="border-b-2 border-zinc-900 pb-6 mb-12 flex justify-between items-end">
-                 <div>
-                   <h1 className="text-3xl font-black text-zinc-900 uppercase italic tracking-tighter m-0">Parecer de Inteligência</h1>
-                   <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.3em] mt-1">Ref: {project.nome} • v{project.version}</div>
-                 </div>
-                 <div className="bg-zinc-900 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest">Confidencial</div>
-               </div>
-
-               {structuredData ? (
-                 <div className="space-y-14 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                   
-                   {/* BLOCO 2 - Decisão Recomendada */}
-                   <div className="bg-zinc-900 text-white p-8 rounded-3xl shadow-2xl relative overflow-hidden group">
-                     <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                        <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                     </div>
-                     <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-2">Recomendação Técnica</h4>
-                     <div className="text-3xl font-black italic uppercase tracking-tighter mb-4">
-                       Opção Recomendada: <span className="text-emerald-400">Planta {structuredData.recomendacao.planta}</span>
-                     </div>
-                     <p className="text-zinc-400 text-sm font-medium leading-relaxed max-w-2xl">
-                       {structuredData.recomendacao.motivo}
-                     </p>
-                   </div>
-
-                   {/* BLOCO 3 - Placar Visual */}
-                   <div className="space-y-4">
-                     <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-900 border-l-4 border-zinc-900 pl-3">Placar por Critério</h4>
-                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                       {structuredData.placar.map((p, i) => (
-                         <div key={i} className="bg-white border border-zinc-200 p-4 rounded-2xl flex flex-col items-center text-center shadow-sm">
-                           <span className="text-[9px] font-black text-zinc-400 uppercase mb-2 truncate w-full">{p.criterio}</span>
-                           <div className={`text-xs font-black uppercase px-3 py-1 rounded-full ${p.vencedora === 'Empate' ? 'bg-zinc-100 text-zinc-400' : 'bg-emerald-50 text-emerald-600'}`}>
-                             {p.vencedora}
-                           </div>
-                         </div>
-                       ))}
-                     </div>
-                   </div>
-
-                   {/* BLOCO 4 - Análise por Critério Detalhada */}
-                   <div className="space-y-8">
-                      <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-900 border-l-4 border-zinc-900 pl-3">Detalhamento Técnico</h4>
-                      {structuredData.detalhes.map((det, i) => (
-                        <div key={i} className="bg-white border border-zinc-100 rounded-3xl overflow-hidden shadow-sm">
-                           <div className="bg-zinc-50 px-6 py-3 border-b border-zinc-100">
-                             <h5 className="text-[11px] font-black uppercase text-zinc-800 tracking-wider">{det.criterio}</h5>
-                           </div>
-                           <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-zinc-100">
-                             <div className="p-6">
-                               <div className="text-[10px] font-black text-zinc-300 uppercase mb-2">Planta Alpha</div>
-                               <p className="text-xs text-zinc-600 leading-relaxed font-medium">{det.analiseAlpha}</p>
-                             </div>
-                             <div className="p-6">
-                               <div className="text-[10px] font-black text-zinc-300 uppercase mb-2">Planta Beta</div>
-                               <p className="text-xs text-zinc-600 leading-relaxed font-medium">{det.analiseBeta}</p>
-                             </div>
-                           </div>
-                           <div className="bg-zinc-900/5 px-6 py-3 border-t border-zinc-100 italic text-[11px] text-zinc-500 font-bold">
-                             Veredito: {det.conclusao}
-                           </div>
-                        </div>
-                      ))}
-                   </div>
-
-                   {/* BLOCO 5 - Riscos e Mitigações */}
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <div className="bg-amber-50/50 border border-amber-100 p-8 rounded-[2rem]">
-                        <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-800 mb-4 flex items-center gap-2">
-                          <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
-                          Alerta de Risco
-                        </h4>
-                        <ul className="space-y-4">
-                          {structuredData.riscosMitigacoes.map((item, i) => (
-                            <li key={i} className="text-xs text-amber-950 font-medium leading-relaxed">
-                              {item.risco}
-                            </li>
-                          ))}
-                        </ul>
-                     </div>
-                     <div className="bg-blue-50/50 border border-blue-100 p-8 rounded-[2rem]">
-                        <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-800 mb-4">Ajustes Sugeridos</h4>
-                        <ul className="space-y-4">
-                          {structuredData.riscosMitigacoes.map((item, i) => (
-                            <li key={i} className="text-xs text-blue-950 font-bold leading-relaxed flex items-start gap-2">
-                              <span className="text-blue-400">→</span>
-                              {item.ajusteSugerido}
-                            </li>
-                          ))}
-                        </ul>
-                     </div>
-                   </div>
-
-                 </div>
-               ) : (
-                 <div className="h-[500px] flex flex-col items-center justify-center text-center opacity-20">
-                    <div className="text-7xl mb-6">📐</div>
-                    <p className="uppercase tracking-[0.4em] font-black text-[10px]">Aguardando Processamento</p>
-                 </div>
-               )}
-
-               {/* Footer */}
-               <div className="mt-20 pt-8 border-t border-zinc-100 flex justify-between items-center opacity-30">
-                 <span className="text-[9px] font-black uppercase tracking-widest">ArchiDecide Professional Report</span>
-                 <span className="text-[9px] font-black uppercase tracking-widest">{new Date().toLocaleDateString('pt-BR')}</span>
-               </div>
-             </div>
-          </div>
+            <Button className="w-full mt-10 py-5 font-black text-xs bg-zinc-900 uppercase tracking-widest" onClick={handleGenerateAnalysis} isLoading={isGenerating}>🚀 ANALISAR COM IA</Button>
+          </Card>
         </div>
-      </Card>
 
-      <div className="flex justify-end gap-8 pt-12 border-t border-zinc-100">
-        <Link to={`/projects/${projectId}/profile`}>
-          <Button variant="ghost" className="px-10 font-bold text-zinc-400 hover:text-zinc-900">Retornar ao Perfil</Button>
-        </Link>
-        <Link to={`/projects/${projectId}/templates`}>
-          <Button className="px-16 py-6 font-black text-xl shadow-2xl hover:scale-105 transition-all">
-            Estudos de Ambientes →
-          </Button>
-        </Link>
+        <div className="lg:col-span-9 space-y-12">
+           {structuredData ? (
+             <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+               
+               {/* BLOCO 2 - Decisão Recomendada */}
+               <div className="bg-zinc-50 border border-zinc-200 p-10 rounded-[2.5rem] shadow-sm mb-14 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-10 text-emerald-500/10">
+                    <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                  </div>
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 mb-2">Recomendação Técnica</h4>
+                  <div className="text-4xl font-black text-zinc-900 tracking-tight uppercase italic mb-4">
+                    Planta {structuredData.recomendacao.planta}
+                  </div>
+                  <p className="text-zinc-600 text-lg font-medium leading-relaxed max-w-2xl">
+                    {structuredData.recomendacao.motivo}
+                  </p>
+               </div>
+
+               {/* BLOCO 3 - Placar Visual por Critérios */}
+               <div className="space-y-4 mb-14">
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 ml-2">Análise de Performance</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    {structuredData.placar.map((p, i) => (
+                      <div key={i} className="bg-white border border-zinc-100 p-5 rounded-3xl text-center flex flex-col justify-center gap-2">
+                         <span className="text-[9px] font-black text-zinc-400 uppercase tracking-wider truncate">{p.criterio}</span>
+                         <div className={`text-[10px] font-black uppercase py-1.5 px-3 rounded-full ${p.vencedora === 'Empate' ? 'bg-zinc-50 text-zinc-400' : 'bg-emerald-50 text-emerald-600'}`}>
+                           {p.vencedora}
+                         </div>
+                      </div>
+                    ))}
+                  </div>
+               </div>
+
+               {/* BLOCO 4 - Análise por Critério (Conteúdo Detalhado) */}
+               <div className="space-y-8 mb-14">
+                  {structuredData.detalhes.map((det, i) => (
+                    <div key={i} className="bg-white border border-zinc-100 rounded-[2.5rem] overflow-hidden shadow-sm">
+                       <div className="px-8 py-4 bg-zinc-50/50 border-b border-zinc-100">
+                          <h5 className="font-black text-xs uppercase tracking-[0.2em] text-zinc-900">{det.criterio}</h5>
+                       </div>
+                       <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-zinc-100">
+                          <div className="p-8 space-y-3">
+                             <div className="text-[10px] font-black text-zinc-300 uppercase italic">Planta Alpha</div>
+                             <p className="text-sm text-zinc-600 leading-relaxed font-medium">{det.analiseAlpha}</p>
+                          </div>
+                          <div className="p-8 space-y-3">
+                             <div className="text-[10px] font-black text-zinc-300 uppercase italic">Planta Beta</div>
+                             <p className="text-sm text-zinc-600 leading-relaxed font-medium">{det.analiseBeta}</p>
+                          </div>
+                       </div>
+                       <div className="p-5 bg-zinc-50 text-center border-t border-zinc-100">
+                         <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest italic">Veredito: {det.conclusao}</span>
+                       </div>
+                    </div>
+                  ))}
+               </div>
+
+               {/* BLOCO 5 - Riscos e Mitigações */}
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-14">
+                  <div className="bg-amber-50/30 border border-amber-100 p-10 rounded-[2.5rem] space-y-6">
+                     <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-amber-700">Riscos da Recomendação</h4>
+                     <ul className="space-y-4">
+                        {structuredData.riscosMitigacoes.map((item, i) => (
+                          <li key={i} className="text-xs text-amber-900 font-bold leading-relaxed flex items-start gap-4">
+                            <span className="text-amber-400 font-black">•</span>
+                            {item.risco}
+                          </li>
+                        ))}
+                     </ul>
+                  </div>
+                  <div className="bg-blue-50/30 border border-blue-100 p-10 rounded-[2.5rem] space-y-6">
+                     <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-blue-700">Ajustes Sugeridos</h4>
+                     <ul className="space-y-4">
+                        {structuredData.riscosMitigacoes.map((item, i) => (
+                          <li key={i} className="text-xs text-blue-900 font-bold leading-relaxed flex items-start gap-4">
+                            <span className="text-blue-400 font-black">→</span>
+                            {item.ajusteSugerido}
+                          </li>
+                        ))}
+                     </ul>
+                  </div>
+               </div>
+
+               {/* BLOCO 6 - Ações Finais */}
+               <div className="pt-10 border-t border-zinc-100 flex items-center justify-between">
+                  <div className="text-[10px] font-black text-zinc-300 uppercase tracking-widest italic">Análise Digital ArchiDecide Core</div>
+                  <div className="flex gap-4">
+                    <Button variant="secondary" className="px-6 py-4 rounded-2xl text-[10px] uppercase font-black tracking-widest">Editar Análise</Button>
+                    <Link to={`/projects/${projectId}/report`}>
+                      <Button className="px-8 py-4 bg-zinc-900 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-xl hover:scale-105 transition-all">
+                        Gerar Relatório PDF
+                      </Button>
+                    </Link>
+                  </div>
+               </div>
+
+             </div>
+           ) : (
+             <div className="h-[600px] flex flex-col items-center justify-center text-center space-y-6 opacity-20 bg-zinc-50 rounded-[3rem] border-2 border-dashed border-zinc-200">
+                <div className="text-7xl">📐</div>
+                <div className="space-y-2">
+                  <p className="uppercase tracking-[0.5em] font-black text-xs">Aguardando Parâmetros</p>
+                  <p className="text-[10px] font-bold text-zinc-400">Configure os eixos de análise e clique em analisar.</p>
+                </div>
+             </div>
+           )}
+        </div>
       </div>
     </div>
   );
