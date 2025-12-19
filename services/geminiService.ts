@@ -11,13 +11,17 @@ export const geminiService = {
     // @ts-ignore
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
-    const prompt = `Você é um consultor sênior de arquitetura. Gere diretrizes conceituais.
+    const prompt = `Você é um consultor sênior de arquitetura e estratégia imobiliária. 
+    Gere diretrizes conceituais para este projeto.
+    
+    DADOS DO PROJETO:
     Perfil: ${JSON.stringify(project.clientProfile)}
     Imóvel: ${JSON.stringify(project.propertyInfo)}
     
-    REGRAS DE ESCRITA:
-    - Use títulos claros para: Conceito, Decisões de Layout, Prioridades Técnicas e Pontos de Atenção.
-    - Seja conciso (bullets). Estilo editorial de luxo. Máximo 4 itens por seção.
+    ESTILO DE ESCRITA:
+    - Editorial de alto padrão (Luxo/Estratégico).
+    - Use títulos claros (Conceito, Fluxos, Materiais, Iluminação).
+    - NÃO USE markdown exagerado como "###" ou muitos "**", apenas texto limpo e direto.
     - Responda em Português (Brasil).`;
 
     const response = await ai.models.generateContent({
@@ -31,17 +35,22 @@ export const geminiService = {
     // @ts-ignore
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
+    const prompt = `Você é um estrategista de arquitetura comparando duas variações de layout.
+    
+    CONTEXTO:
+    Alpha: ${JSON.stringify(project.planA)}
+    Beta: ${JSON.stringify(project.planB)}
+    Critérios de Sucesso: ${JSON.stringify(project.comparison?.criterios)}
+    
+    INSTRUÇÕES CRÍTICAS PARA O JSON:
+    - No campo "motivo", escreva um parágrafo executivo sem markdown.
+    - Nas análises detalhadas, seja técnico e isento.
+    - NÃO use caracteres de markdown (#, *, ` + "`" + `) dentro das strings do JSON.
+    - Mantenha um tom profissional de consultoria.`;
+
     const response = await ai.models.generateContent({
       model: config.model || 'gemini-3-flash-preview',
-      contents: `Você é um estrategista em viabilidade arquitetônica. Compare criticamente a Planta Alpha e a Planta Beta.
-      Alpha: ${JSON.stringify(project.planA)}
-      Beta: ${JSON.stringify(project.planB)}
-      Critérios: ${JSON.stringify(project.comparison?.criterios)}
-      
-      FOCO DO RELATÓRIO:
-      - Recomendação clara.
-      - Análise de riscos e como mitigá-los.
-      - Texto curto e executivo para clientes de alto padrão.`,
+      contents: prompt,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -51,7 +60,7 @@ export const geminiService = {
               type: Type.OBJECT,
               properties: {
                 planta: { type: Type.STRING, description: "Alpha ou Beta" },
-                motivo: { type: Type.STRING, description: "Justificativa executiva de no máximo 3 linhas." }
+                motivo: { type: Type.STRING, description: "Justificativa sem markdown." }
               },
               required: ["planta", "motivo"]
             },
@@ -72,9 +81,9 @@ export const geminiService = {
                 type: Type.OBJECT,
                 properties: {
                   criterio: { type: Type.STRING },
-                  analiseAlpha: { type: Type.STRING, description: "Análise concisa (max 3 linhas)." },
-                  analiseBeta: { type: Type.STRING, description: "Análise concisa (max 3 linhas)." },
-                  conclusao: { type: Type.STRING, description: "Veredito rápido." }
+                  analiseAlpha: { type: Type.STRING },
+                  analiseBeta: { type: Type.STRING },
+                  conclusao: { type: Type.STRING }
                 },
                 required: ["criterio", "analiseAlpha", "analiseBeta", "conclusao"]
               }
@@ -103,7 +112,11 @@ export const geminiService = {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: config.model || 'gemini-3-flash-preview',
-      contents: `Recomendações técnicas: ${templateInput.templateType}. Perfil: ${JSON.stringify(profile)}.`,
+      contents: `Gere recomendações técnicas de design de interiores: ${templateInput.templateType}. 
+      Contexto do Cliente: ${JSON.stringify(profile)}.
+      Estilo: ${templateInput.estilo}. 
+      Orçamento: ${templateInput.orcamento}.
+      Responda de forma técnica, sem markdown de títulos exagerados.`,
     });
     return response.text || "";
   }

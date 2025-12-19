@@ -28,8 +28,8 @@ const InstructionsPage: React.FC = () => {
             <h3 className="font-black uppercase tracking-tight">O JSON é o Backup</h3>
           </div>
           <p className="text-blue-100 text-xs leading-relaxed font-medium">
-            O arquivo .json contém toda a "inteligência" do projeto. É com ele que você leva o seu trabalho para outro computador ou tablet. 
-            <strong> Sempre salve este arquivo</strong> para continuar editando depois.
+            O arquivo .json é o backup editável. 
+            <strong> Dica:</strong> Se exportar apenas um projeto, o nome do arquivo será automático (Ex: CLIENTE_PROJETO.json), facilitando sua organização.
           </p>
         </div>
       </div>
@@ -40,37 +40,37 @@ const InstructionsPage: React.FC = () => {
           <span>⚠️</span> Atenção ao Dispositivo
         </h3>
         <p className="text-sm text-amber-800 leading-relaxed font-medium">
-          O ArchiDecide não utiliza nuvem centralizada para sua privacidade. Tudo é salvo no <strong>armazenamento local do seu navegador</strong>. 
-          Se você mudar de computador ou limpar o histórico do navegador sem ter o backup .json, <strong>os dados serão perdidos</strong>.
+          Tudo é salvo no <strong>armazenamento local do seu navegador</strong>. 
+          Use a função "Exportar Backup" para baixar seus projetos seletivamente e movê-los entre diferentes aparelhos ou fazer cópias de segurança.
         </p>
       </div>
 
       <div className="space-y-8">
-        <h3 className="text-xs font-black text-zinc-400 uppercase tracking-[0.3em] text-center">Fluxo de Trabalho Recomendado</h3>
+        <h3 className="text-xs font-black text-zinc-400 uppercase tracking-[0.3em] text-center">Fluxo de Backup e Portabilidade</h3>
         
         <div className="flex gap-6 items-start">
           <span className="text-4xl font-black text-zinc-100 italic">01</span>
-          <Card title="Início e Briefing" className="flex-1 rounded-[2rem]">
+          <Card title="Exportação Seletiva" className="flex-1 rounded-[2rem]">
             <p className="text-zinc-600 text-sm leading-relaxed">
-              Crie o projeto e preencha o perfil. Use a IA para gerar as diretrizes iniciais que dão o tom do relatório.
+              Ao clicar em <strong>Exportar Backup</strong> na tela de projetos, você pode escolher exatamente quais estudos quer salvar em um único arquivo .json.
             </p>
           </Card>
         </div>
 
         <div className="flex gap-6 items-start">
           <span className="text-4xl font-black text-zinc-100 italic">02</span>
-          <Card title="Comparativo A vs B" className="flex-1 rounded-[2rem]">
+          <Card title="Nomenclatura Inteligente" className="flex-1 rounded-[2rem]">
             <p className="text-zinc-600 text-sm leading-relaxed">
-              Insira as áreas e descrições das plantas. Deixe a IA analisar os riscos e vantagens técnicas de cada uma.
+              Ao exportar um único item, o sistema nomeia o arquivo como <strong>CLIENTE_PROJETO_BACKUP.json</strong>. Isso ajuda você a encontrar o arquivo certo em suas pastas do sistema.
             </p>
           </Card>
         </div>
 
         <div className="flex gap-6 items-start">
           <span className="text-4xl font-black text-zinc-100 italic">03</span>
-          <Card title="Exportação Dupla" className="flex-1 rounded-[2rem] border-zinc-900 border-2">
+          <Card title="Importação e Mesclagem" className="flex-1 rounded-[2rem] border-zinc-900 border-2">
             <p className="text-zinc-600 text-sm leading-relaxed">
-              Ao finalizar, baixe o <strong>PDF</strong> para enviar ao cliente e o <strong>BACKUP (.json)</strong> para sua pasta de arquivos do projeto. Assim você nunca perde o progresso.
+              Ao usar <strong>Importar Backup</strong>, o ArchiDecide mescla os projetos do arquivo com os que você já tem no navegador, sem apagar seus projetos atuais.
             </p>
           </Card>
         </div>

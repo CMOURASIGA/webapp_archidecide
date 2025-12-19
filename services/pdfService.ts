@@ -7,8 +7,11 @@ export const pdfService = {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 25;
+    const margin = 20;
     const contentWidth = pageWidth - (margin * 2);
+
+    // Helper para limpar markdown que a IA possa ter enviado
+    const cleanText = (txt: string) => txt.replace(/[#*`]/g, "").trim();
 
     const structuredData: StructuredAnalysis | null = project.comparison?.analiseComparativa?.content 
       ? JSON.parse(project.comparison.analiseComparativa.content) 
@@ -16,225 +19,294 @@ export const pdfService = {
 
     // --- DESIGN SYSTEM DO PDF ---
     const COLORS = {
-      BLACK: [15, 15, 15] as [number, number, number],
-      GRAY: [80, 80, 80] as [number, number, number],
-      LIGHT_GRAY: [190, 190, 190] as [number, number, number],
-      BG: [252, 252, 252] as [number, number, number],
-      WHITE: [255, 255, 255] as [number, number, number],
-      ACCENT: [0, 0, 0] as [number, number, number]
+      BLACK: [0, 0, 0] as [number, number, number],
+      DARK: [40, 40, 40] as [number, number, number],
+      GRAY: [120, 120, 120] as [number, number, number],
+      LINE: [230, 230, 230] as [number, number, number],
+      ACCENT: [245, 245, 245] as [number, number, number]
     };
 
-    const setFont = (weight: "bold" | "normal" | "italic" = "normal", size: number = 10, color = COLORS.BLACK) => {
+    const setFont = (weight: "bold" | "normal" | "italic" = "normal", size: number = 9, color = COLORS.BLACK) => {
+      // @ts-ignore
       doc.setFont("helvetica", weight);
       doc.setFontSize(size);
       doc.setTextColor(color[0], color[1], color[2]);
     };
 
-    const drawHeaderFooter = () => {
-      if (doc.internal.getNumberOfPages() > 1) {
-        setFont("bold", 7, COLORS.LIGHT_GRAY);
-        doc.text(`${project.nome.toUpperCase()} • RELATÓRIO TÉCNICO V${project.version}`, margin, 12);
-        doc.text("ARCHIDECIDE STUDIO", pageWidth - margin, 12, { align: 'right' });
-        doc.setDrawColor(240, 240, 240);
-        doc.line(margin, 15, pageWidth - margin, 15);
-        
-        setFont("normal", 7, COLORS.LIGHT_GRAY);
-        doc.text(`PÁGINA ${doc.internal.getCurrentPageInfo().pageNumber}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+    const drawLine = (y: number) => {
+      doc.setDrawColor(COLORS.LINE[0], COLORS.LINE[1], COLORS.LINE[2]);
+      doc.setLineWidth(0.1);
+      doc.line(margin, y, pageWidth - margin, y);
+    };
+
+    const drawHeaderFooter = (pageTitle: string) => {
+      const pageNum = doc.internal.getCurrentPageInfo().pageNumber;
+      if (pageNum > 1) {
+        setFont("bold", 7, COLORS.GRAY);
+        doc.text("ARCHIDECIDE | CONSULTORIA ESTRATÉGICA", margin, 12);
+        doc.text(pageTitle.toUpperCase(), pageWidth / 2, 12, { align: 'center' });
+        doc.text(`P. ${pageNum}`, pageWidth - margin, 12, { align: 'right' });
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, 14, pageWidth - margin, 14);
       }
     };
 
-    // --- PÁGINA 1: CAPA EDITORIAL ---
-    doc.setFillColor(COLORS.BG[0], COLORS.BG[1], COLORS.BG[2]);
+    // --- PÁGINA 1: CAPA (EDITORIAL IMPACT) ---
+    doc.setFillColor(255, 255, 255);
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
+    
+    // Elemento Decorativo Lado Esquerdo
     doc.setFillColor(0, 0, 0);
-    doc.rect(margin, margin, 1.5, 50, 'F');
+    doc.rect(0, 0, 15, pageHeight, 'F');
 
-    setFont("bold", 44, COLORS.BLACK);
-    const titleLines = doc.splitTextToSize(project.nome.toUpperCase(), contentWidth);
-    doc.text(titleLines, margin, 90);
+    let yCapa = 60;
+    setFont("normal", 10, COLORS.GRAY);
+    doc.text("RELATÓRIO DE VIABILIDADE ARQUITETÔNICA", 25, yCapa);
     
-    setFont("normal", 14, COLORS.GRAY);
-    doc.text("ESTUDO DE VIABILIDADE E APOIO À DECISÃO", margin, 105 + (titleLines.length * 10));
-
-    const footerY = pageHeight - 50;
-    setFont("bold", 8, COLORS.LIGHT_GRAY);
-    doc.text("PREPARADO PARA", margin, footerY);
-    setFont("bold", 12, COLORS.BLACK);
-    doc.text(project.cliente || "CONSULTORIA TÉCNICA", margin, footerY + 8);
+    yCapa += 15;
+    setFont("bold", 38, COLORS.BLACK);
+    const titleLines = doc.splitTextToSize(project.nome.toUpperCase(), contentWidth - 20);
+    doc.text(titleLines, 25, yCapa);
     
-    doc.text("DATA DE EMISSÃO", pageWidth - margin - 45, footerY);
-    doc.text(new Date().toLocaleDateString('pt-BR'), pageWidth - margin - 45, footerY + 8);
+    yCapa += (titleLines.length * 12) + 10;
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(1.5);
+    doc.line(25, yCapa, 65, yCapa);
 
-    // --- PÁGINA 2: RESUMO EXECUTIVO (CONVENCIMENTO) ---
+    yCapa += 20;
+    setFont("normal", 12, COLORS.DARK);
+    doc.text(`Cliente: ${project.cliente || "Confidencial"}`, 25, yCapa);
+    
+    const footerY = pageHeight - 30;
+    setFont("bold", 8, COLORS.BLACK);
+    doc.text("ESTÚDIO RESPONSÁVEL", 25, footerY);
+    setFont("normal", 8, COLORS.GRAY);
+    doc.text("ArchiDecide Professional Suite v1.8", 25, footerY + 5);
+    
+    doc.text("DATA DE EMISSÃO", pageWidth - margin - 40, footerY);
+    setFont("bold", 10, COLORS.BLACK);
+    doc.text(new Date().toLocaleDateString('pt-BR'), pageWidth - margin - 40, footerY + 8);
+
+    // --- PÁGINA 2: O VEREDITO (LAYOUT DE IMPACTO) ---
     doc.addPage();
-    drawHeaderFooter();
-    let y = 45;
+    drawHeaderFooter("Resumo Executivo");
+    let y = 40;
 
-    setFont("bold", 28, COLORS.BLACK);
-    doc.text("Resumo Executivo", margin, y);
-    y += 25;
+    setFont("bold", 24, COLORS.BLACK);
+    doc.text("O Veredito.", margin, y);
+    y += 15;
 
     if (structuredData) {
-      doc.setFillColor(0, 0, 0);
-      doc.roundedRect(margin, y, contentWidth, 55, 3, 3, 'F');
+      // Box de Recomendação
+      doc.setFillColor(COLORS.ACCENT[0], COLORS.ACCENT[1], COLORS.ACCENT[2]);
+      doc.roundedRect(margin, y, contentWidth, 60, 2, 2, 'F');
       
-      setFont("bold", 8, [180, 180, 180]);
-      doc.text("RECOMENDAÇÃO TÉCNICA FINAL", margin + 12, y + 15);
+      setFont("bold", 8, COLORS.GRAY);
+      doc.text("RECOMENDAÇÃO TÉCNICA", margin + 10, y + 12);
       
-      setFont("bold", 22, COLORS.WHITE);
-      doc.text(`PLANTA ${structuredData.recomendacao.planta.toUpperCase()}`, margin + 12, y + 32);
+      setFont("bold", 32, COLORS.BLACK);
+      doc.text(`PLANTA ${structuredData.recomendacao.planta}`, margin + 10, y + 28);
       
-      setFont("normal", 10, [210, 210, 210]);
-      const recLines = doc.splitTextToSize(structuredData.recomendacao.motivo, contentWidth - 24);
-      doc.text(recLines, margin + 12, y + 43);
-      y += 85;
+      setFont("normal", 11, COLORS.DARK);
+      const motivoLines = doc.splitTextToSize(cleanText(structuredData.recomendacao.motivo), contentWidth - 20);
+      doc.text(motivoLines, margin + 10, y + 40);
+      
+      y += 80;
 
-      setFont("bold", 12, COLORS.BLACK);
-      doc.text("Pilares da Recomendação:", margin, y);
+      // Pilares Rápidos
+      setFont("bold", 10, COLORS.BLACK);
+      doc.text("PONTOS CHAVE DA DECISÃO", margin, y);
+      y += 8;
+      drawLine(y);
       y += 12;
-      
-      const pillars = ["Otimização de Fluxos", "Conforto Ambiental", "Valor de Mercado"];
-      pillars.forEach(p => {
-        doc.setFillColor(245, 245, 245);
-        doc.roundedRect(margin, y - 5, contentWidth, 10, 1, 1, 'F');
-        setFont("bold", 9, COLORS.GRAY);
-        doc.text(`• ${p}: Estratégia de design para máxima eficiência.`, margin + 5, y + 2);
-        y += 14;
+
+      structuredData.placar.slice(0, 3).forEach(p => {
+        setFont("bold", 9, COLORS.BLACK);
+        doc.text(p.criterio.toUpperCase(), margin, y);
+        setFont("normal", 9, COLORS.GRAY);
+        doc.text(`Vencedora: Planta ${p.vencedora}`, pageWidth - margin, y, { align: 'right' });
+        y += 12;
       });
     }
 
-    // --- PÁGINA 3: DIRETRIZES E PREMISSAS ---
+    // --- PÁGINA 3: DIRETRIZES CONCEITUAIS ---
     doc.addPage();
-    drawHeaderFooter();
-    y = 45;
-    setFont("bold", 28, COLORS.BLACK);
-    doc.text("Diretrizes do Projeto", margin, y);
-    y += 20;
+    drawHeaderFooter("Diretrizes e Conceito");
+    y = 35;
+    
+    setFont("bold", 20, COLORS.BLACK);
+    doc.text("Diretrizes Estratégicas", margin, y);
+    y += 15;
 
-    const diretrizes = project.diretrizesGerais?.content || "Conceito baseado em integração e funcionalidade.";
-    const chunks = diretrizes.split('\n').filter(l => l.trim() !== "");
-    chunks.forEach(chunk => {
-      if (y > pageHeight - 30) { doc.addPage(); drawHeaderFooter(); y = 45; }
-      if (chunk.includes(':') || chunk.startsWith('#')) {
-        y += 8;
-        setFont("bold", 12, COLORS.BLACK);
-        doc.text(chunk.replace(/#/g, "").trim().toUpperCase(), margin, y);
-        y += 8;
+    const diretrizesRaw = project.diretrizesGerais?.content || "";
+    const lines = diretrizesRaw.split('\n');
+    
+    lines.forEach(line => {
+      const text = cleanText(line);
+      if (!text) return;
+
+      if (y > pageHeight - 30) { doc.addPage(); drawHeaderFooter("Diretrizes"); y = 35; }
+
+      if (line.includes(':') || line.startsWith('#')) {
+        y += 5;
+        setFont("bold", 10, COLORS.BLACK);
+        doc.text(text.toUpperCase(), margin, y);
+        y += 6;
       } else {
-        setFont("normal", 10, COLORS.GRAY);
-        const wrapped = doc.splitTextToSize(chunk.replace(/^-/g, "•").trim(), contentWidth);
-        doc.text(wrapped, margin, y);
-        y += (wrapped.length * 6) + 4;
+        setFont("normal", 9, COLORS.DARK);
+        const wrapped = doc.splitTextToSize(`• ${text}`, contentWidth - 5);
+        doc.text(wrapped, margin + 2, y);
+        y += (wrapped.length * 5) + 3;
       }
     });
 
-    // --- PÁGINA 4: QUADRO COMPARATIVO ---
+    // --- PÁGINA 4: QUADRO COMPARATIVO (SCORECARD) ---
     doc.addPage();
-    drawHeaderFooter();
-    y = 45;
-    setFont("bold", 28, COLORS.BLACK);
-    doc.text("Quadro Técnico", margin, y);
-    y += 25;
+    drawHeaderFooter("Análise Técnica");
+    y = 35;
+    
+    setFont("bold", 20, COLORS.BLACK);
+    doc.text("Comparativo Técnico", margin, y);
+    y += 15;
 
     if (structuredData) {
-      setFont("bold", 8, COLORS.LIGHT_GRAY);
-      doc.text("CRITÉRIO TÉCNICO", margin, y);
-      doc.text("VENCEDORA", pageWidth - margin, y, { align: 'right' });
-      y += 5;
-      doc.setDrawColor(0, 0, 0);
-      doc.setLineWidth(0.5);
-      doc.line(margin, y, pageWidth - margin, y);
-      y += 15;
+      // Cabeçalho Tabela
+      doc.setFillColor(0, 0, 0);
+      doc.rect(margin, y, contentWidth, 8, 'F');
+      setFont("bold", 7, [255, 255, 255]);
+      doc.text("CRITÉRIO ANALISADO", margin + 5, y + 5.5);
+      doc.text("VEREDITO TÉCNICO", pageWidth - margin - 5, y + 5.5, { align: 'right' });
+      y += 8;
 
       structuredData.placar.forEach(p => {
-        setFont("bold", 11, COLORS.BLACK);
-        doc.text(p.criterio.toUpperCase(), margin, y);
-        const pillX = pageWidth - margin - 35;
-        if (p.vencedora !== 'Empate') {
-          doc.setFillColor(0, 0, 0);
-          doc.roundedRect(pillX, y - 5.5, 35, 8, 2, 2, 'F');
-          setFont("bold", 7, COLORS.WHITE);
-          doc.text(`PLANTA ${p.vencedora.toUpperCase()}`, pillX + 17.5, y, { align: 'center' });
-        } else {
-          setFont("normal", 7, COLORS.LIGHT_GRAY);
-          doc.text("EQUILÍBRIO", pillX + 17.5, y, { align: 'center' });
-        }
-        y += 18;
-        doc.setDrawColor(245, 245, 245);
-        doc.line(margin, y - 10, pageWidth - margin, y - 10);
-      });
-    }
-
-    // --- PÁGINA 5: ANÁLISE DETALHADA ---
-    doc.addPage();
-    drawHeaderFooter();
-    y = 45;
-    setFont("bold", 28, COLORS.BLACK);
-    doc.text("Análise de Critérios", margin, y);
-    y += 20;
-
-    if (structuredData) {
-      structuredData.detalhes.forEach((det, i) => {
-        if (y > pageHeight - 85) { doc.addPage(); drawHeaderFooter(); y = 45; }
-        setFont("bold", 14, COLORS.BLACK);
-        doc.text(`${i + 1}. ${det.criterio}`, margin, y);
+        if (y > pageHeight - 20) { doc.addPage(); y = 40; }
+        
         y += 12;
-        const colW = (contentWidth / 2) - 10;
-        setFont("bold", 7, COLORS.LIGHT_GRAY);
-        doc.text("PLANTA ALPHA", margin, y);
-        doc.text("PLANTA BETA", margin + colW + 20, y);
-        y += 6;
-        setFont("normal", 9, COLORS.GRAY);
-        const lA = doc.splitTextToSize(det.analiseAlpha, colW);
-        const lB = doc.splitTextToSize(det.analiseBeta, colW);
-        doc.text(lA, margin, y);
-        doc.text(lB, margin + colW + 20, y);
-        y += Math.max(lA.length, lB.length) * 5 + 10;
-        doc.setFillColor(248, 248, 248);
-        doc.rect(margin, y - 5, contentWidth, 10, 'F');
-        setFont("italic", 8, COLORS.BLACK);
-        doc.text(`Conclusão Técnica: ${det.conclusao}`, margin + 5, y + 1.5);
-        y += 25;
+        setFont("bold", 9, COLORS.DARK);
+        doc.text(p.criterio.toUpperCase(), margin + 5, y);
+        
+        const pillW = 30;
+        const pillX = pageWidth - margin - pillW - 5;
+        
+        if (p.vencedora !== 'Empate') {
+          doc.setFillColor(240, 240, 240);
+          doc.roundedRect(pillX, y - 5, pillW, 7, 1, 1, 'F');
+          setFont("bold", 7, COLORS.BLACK);
+          doc.text(`PLANTA ${p.vencedora}`, pillX + (pillW / 2), y, { align: 'center' });
+        } else {
+          setFont("normal", 7, COLORS.GRAY);
+          doc.text("EQUILÍBRIO", pillX + (pillW / 2), y, { align: 'center' });
+        }
+        
+        y += 4;
+        drawLine(y);
       });
     }
 
-    // --- PÁGINA 6: PARECER E ENCERRAMENTO ---
+    // --- PÁGINA 5: DETALHAMENTO (SIDE-BY-SIDE GRID) ---
     doc.addPage();
-    drawHeaderFooter();
-    y = 45;
-    setFont("bold", 28, COLORS.BLACK);
-    doc.text("Parecer Final", margin, y);
-    y += 25;
+    drawHeaderFooter("Detalhamento A vs B");
+    y = 35;
+
+    setFont("bold", 20, COLORS.BLACK);
+    doc.text("Análise de Ambientes e Fluxos", margin, y);
+    y += 15;
 
     if (structuredData) {
-      setFont("bold", 12, COLORS.BLACK);
-      doc.text("Considerações de Viabilidade", margin, y);
-      y += 10;
-      setFont("normal", 10, COLORS.GRAY);
-      const conclusion = doc.splitTextToSize("Após análise exaustiva das propostas, concluímos que a recomendação apresentada atende com maior precisão os requisitos de longevidade e funcionalidade estabelecidos no briefing inicial.", contentWidth);
-      doc.text(conclusion, margin, y);
-      y += (conclusion.length * 6) + 20;
+      structuredData.detalhes.forEach((det) => {
+        if (y > pageHeight - 60) { doc.addPage(); drawHeaderFooter("Análise Detalhada"); y = 35; }
+        
+        // Header do Critério
+        doc.setFillColor(250, 250, 250);
+        doc.rect(margin, y, contentWidth, 7, 'F');
+        setFont("bold", 9, COLORS.BLACK);
+        doc.text(det.criterio.toUpperCase(), margin + 4, y + 4.5);
+        y += 12;
 
-      // BOX RISCOS
-      doc.setFillColor(255, 245, 245);
-      doc.roundedRect(margin, y, contentWidth, 45, 2, 2, 'F');
-      setFont("bold", 10, [180, 0, 0]);
-      doc.text("Riscos Identificados e Mitigações:", margin + 10, y + 12);
-      setFont("normal", 9, COLORS.GRAY);
-      structuredData.riscosMitigacoes.forEach((r, i) => {
-        if (i < 3) doc.text(`• ${r.risco} → ${r.ajusteSugerido}`, margin + 10, y + 22 + (i * 7), { maxWidth: contentWidth - 20 });
+        const colW = (contentWidth / 2) - 10;
+        
+        // Coluna Alpha
+        setFont("bold", 7, COLORS.GRAY);
+        doc.text("PROPOSTA ALPHA", margin, y);
+        y += 5;
+        setFont("normal", 8.5, COLORS.DARK);
+        const textA = doc.splitTextToSize(cleanText(det.analiseAlpha), colW);
+        doc.text(textA, margin, y);
+
+        // Coluna Beta (Posicionada ao lado)
+        const xBeta = margin + colW + 20;
+        setFont("bold", 7, COLORS.GRAY);
+        doc.text("PROPOSTA BETA", xBeta, y - 5);
+        const textB = doc.splitTextToSize(cleanText(det.analiseBeta), colW);
+        doc.text(textB, xBeta, y);
+
+        y += Math.max(textA.length, textB.length) * 4.5 + 8;
+        
+        // Conclusão do critério
+        doc.setDrawColor(0,0,0);
+        doc.setLineWidth(0.3);
+        doc.line(margin, y, margin + 20, y);
+        y += 5;
+        setFont("italic", 8, COLORS.BLACK);
+        doc.text(`Nota Técnica: ${cleanText(det.conclusao)}`, margin, y);
+        
+        y += 15;
       });
     }
 
-    y = pageHeight - 50;
+    // --- PÁGINA FINAL: RISCOS E ASSINATURA ---
+    doc.addPage();
+    drawHeaderFooter("Conclusão e Próximos Passos");
+    y = 35;
+
+    setFont("bold", 20, COLORS.BLACK);
+    doc.text("Mitigação de Riscos", margin, y);
+    y += 15;
+
+    if (structuredData) {
+      structuredData.riscosMitigacoes.forEach(r => {
+        doc.setFillColor(255, 250, 250);
+        doc.rect(margin, y, contentWidth, 15, 'F');
+        setFont("bold", 9, [150, 0, 0]);
+        doc.text(`RISCO: ${cleanText(r.risco)}`, margin + 5, y + 6);
+        setFont("normal", 8.5, COLORS.DARK);
+        doc.text(`SOLUÇÃO: ${cleanText(r.ajusteSugerido)}`, margin + 5, y + 11);
+        y += 20;
+      });
+    }
+
+    y = pageHeight - 60;
     doc.setDrawColor(0);
-    doc.line(margin, y, margin + 70, y);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, margin + 60, y);
+    
+    y += 8;
     setFont("bold", 10, COLORS.BLACK);
-    doc.text("ARQUITETO RESPONSÁVEL", margin, y + 8);
-    setFont("normal", 8, COLORS.LIGHT_GRAY);
-    doc.text("ArchiDecide Professional Report System v1.6", margin, y + 14);
+    doc.text("ARQUITETO(A) RESPONSÁVEL", margin, y);
+    
+    y += 5;
+    setFont("normal", 8, COLORS.GRAY);
+    doc.text("Registro Profissional Ativo", margin, y);
+    
+    y += 15;
+    doc.setFillColor(0, 0, 0);
+    doc.rect(margin, y, 10, 10, 'F');
+    setFont("bold", 10, [255, 255, 255]);
+    doc.text("AD", margin + 2, y + 7);
+    setFont("bold", 8, COLORS.BLACK);
+    doc.text("ARCHIDECIDE", margin + 12, y + 4);
+    setFont("normal", 7, COLORS.GRAY);
+    doc.text("Relatório Gerado via Inteligência Artificial", margin + 12, y + 8);
 
     const pdfBase64 = doc.output("datauristring");
-    return { blob: doc.output("blob"), meta: { id: crypto.randomUUID(), generatedAt: new Date().toISOString(), fileName: `RELATORIO_TECNICO_${project.nome.replace(/\s+/g, '_').toUpperCase()}.pdf`, pdfBase64 } };
+    return { 
+      blob: doc.output("blob"), 
+      meta: { 
+        id: crypto.randomUUID(), 
+        generatedAt: new Date().toISOString(), 
+        fileName: `ESTUDO_TECNICO_${project.nome.replace(/\s+/g, '_').toUpperCase()}.pdf`, 
+        pdfBase64 
+      } 
+    };
   }
 };

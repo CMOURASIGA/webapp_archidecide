@@ -2,13 +2,20 @@
 import React, { useState, useRef } from 'react';
 import { useProjectStore } from '../store/useProjectStore';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Input } from '../components/common/UI';
+import { Button, Card, Input, Checkbox } from '../components/common/UI';
 
 const ProjectsPage: React.FC = () => {
   const { projects, createProject, duplicateProject, deleteProject, loadInitialData } = useProjectStore();
   const navigate = useNavigate();
+  
+  // States para Modal de Criação
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newProjectData, setNewProjectData] = useState({ nome: '', cliente: '' });
+  
+  // States para Modal de Exportação Seletiva
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCreate = () => {
@@ -18,17 +25,35 @@ const ProjectsPage: React.FC = () => {
     setNewProjectData({ nome: '', cliente: '' });
   };
 
-  const exportBackup = () => {
-    const data = localStorage.getItem("archidecide_projects");
-    if (!data) return alert("Nenhum dado para exportar.");
-    
+  const toggleSelectProject = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleExportSelected = () => {
+    if (selectedIds.length === 0) return alert("Selecione ao menos um projeto.");
+
+    const selectedProjects = projects.filter(p => selectedIds.includes(p.id));
+    let fileName = "";
+
+    if (selectedProjects.length === 1) {
+      const p = selectedProjects[0];
+      fileName = `${(p.cliente || "SEM_CLIENTE").replace(/\s+/g, '_')}_${p.nome.replace(/\s+/g, '_')}_BACKUP.json`.toUpperCase();
+    } else {
+      fileName = `ARCHIDECIDE_COLETIVO_${new Date().toISOString().split('T')[0]}.json`;
+    }
+
+    const data = JSON.stringify(selectedProjects);
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ARCHIDECIDE_BACKUP_${new Date().toISOString().split('T')[0]}.json`;
+    a.download = fileName;
     a.click();
     URL.revokeObjectURL(url);
+    setIsExportModalOpen(false);
+    setSelectedIds([]);
   };
 
   const importBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,11 +64,23 @@ const ProjectsPage: React.FC = () => {
     reader.onload = (event) => {
       try {
         const json = event.target?.result as string;
-        // Validação básica
-        JSON.parse(json); 
-        localStorage.setItem("archidecide_projects", json);
-        loadInitialData(); // Recarrega o store
-        alert("Backup importado com sucesso!");
+        const importedData = JSON.parse(json);
+        
+        // Se for um backup antigo ou completo, ele pode ser um objeto grande ou um array.
+        // O importador deve lidar com array de projetos.
+        const projectsToImport = Array.isArray(importedData) ? importedData : [importedData];
+        
+        // Merge inteligente (adiciona apenas o que não existe por ID)
+        const currentProjects = [...projects];
+        projectsToImport.forEach(newP => {
+          if (!currentProjects.find(curr => curr.id === newP.id)) {
+            currentProjects.push(newP);
+          }
+        });
+
+        localStorage.setItem("archidecide_projects", JSON.stringify(currentProjects));
+        loadInitialData();
+        alert("Backup importatedo e mesclado com sucesso!");
       } catch (err) {
         alert("Erro ao importar: Arquivo inválido.");
       }
@@ -59,7 +96,15 @@ const ProjectsPage: React.FC = () => {
           <p className="text-zinc-500 font-medium">Gestão técnica e portabilidade de dados.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-           <Button variant="secondary" className="text-[10px] uppercase font-black tracking-widest" onClick={exportBackup}>
+           <Button 
+            variant="secondary" 
+            className="text-[10px] uppercase font-black tracking-widest" 
+            onClick={() => {
+              setSelectedIds(projects.map(p => p.id));
+              setIsExportModalOpen(true);
+            }}
+            disabled={projects.length === 0}
+          >
              📥 Exportar Backup
            </Button>
            <Button variant="secondary" className="text-[10px] uppercase font-black tracking-widest" onClick={() => fileInputRef.current?.click()}>
@@ -115,6 +160,7 @@ const ProjectsPage: React.FC = () => {
         </div>
       )}
 
+      {/* MODAL: CRIAR PROJETO */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300">
           <Card className="w-full max-w-md rounded-[2.5rem] shadow-2xl border-none p-10" title="Novo Estudo de Caso">
@@ -136,6 +182,50 @@ const ProjectsPage: React.FC = () => {
               <div className="flex gap-3 justify-end pt-6">
                 <Button variant="ghost" onClick={() => setIsModalOpen(false)} className="font-black uppercase tracking-widest text-xs">Cancelar</Button>
                 <Button onClick={handleCreate} disabled={!newProjectData.nome} className="px-8 font-black uppercase tracking-widest text-xs">Criar Estudo</Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* MODAL: EXPORTAÇÃO SELETIVA */}
+      {isExportModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300">
+          <Card className="w-full max-w-lg rounded-[2.5rem] shadow-2xl border-none p-10" title="Selecionar para Backup">
+            <div className="space-y-6">
+              <p className="text-xs text-zinc-400 font-bold uppercase tracking-widest mb-4">Escolha os projetos que deseja exportar:</p>
+              
+              <div className="max-h-[300px] overflow-y-auto pr-2 space-y-2 custom-scrollbar-light">
+                {projects.map(p => (
+                  <div 
+                    key={p.id} 
+                    onClick={() => toggleSelectProject(p.id)}
+                    className={`flex items-center justify-between p-4 rounded-2xl border-2 cursor-pointer transition-all ${selectedIds.includes(p.id) ? 'border-zinc-900 bg-zinc-900 text-white' : 'border-zinc-100 bg-zinc-50 text-zinc-600 hover:border-zinc-200'}`}
+                  >
+                    <div>
+                      <div className="font-black uppercase text-xs italic">{p.nome}</div>
+                      <div className={`text-[9px] font-bold uppercase tracking-widest ${selectedIds.includes(p.id) ? 'text-zinc-400' : 'text-zinc-400'}`}>
+                        {p.cliente || 'Sem Cliente'}
+                      </div>
+                    </div>
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedIds.includes(p.id) ? 'border-white bg-white' : 'border-zinc-200'}`}>
+                      {selectedIds.includes(p.id) && <span className="text-zinc-900 text-xs font-black">✓</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-between items-center pt-6 border-t border-zinc-100">
+                <button 
+                  onClick={() => selectedIds.length === projects.length ? setSelectedIds([]) : setSelectedIds(projects.map(p => p.id))}
+                  className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors"
+                >
+                  {selectedIds.length === projects.length ? "Desmarcar Todos" : "Selecionar Todos"}
+                </button>
+                <div className="flex gap-2">
+                  <Button variant="ghost" onClick={() => setIsExportModalOpen(false)} className="text-[10px] font-black uppercase tracking-widest">Cancelar</Button>
+                  <Button onClick={handleExportSelected} className="px-6 text-[10px] font-black uppercase tracking-widest">Baixar {selectedIds.length} Itens</Button>
+                </div>
               </div>
             </div>
           </Card>
