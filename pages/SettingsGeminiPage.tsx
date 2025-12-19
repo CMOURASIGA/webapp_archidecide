@@ -14,10 +14,8 @@ const SettingsGeminiPage: React.FC = () => {
 
   useEffect(() => {
     const checkKey = () => {
-      // @ts-ignore - process.env.API_KEY injetado pelo Vite
+      // @ts-ignore
       const key = process.env.API_KEY;
-      
-      // Valida se a chave foi injetada e não é um valor vazio ou undefined string
       if (key && key !== "" && key !== "undefined") {
         setHasKey(true);
       } else {
@@ -39,66 +37,62 @@ const SettingsGeminiPage: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto space-y-12 pb-20">
       <div className="border-b border-zinc-200 pb-8">
-        <h2 className="text-4xl font-black text-zinc-900 tracking-tight uppercase italic">Conectividade IA</h2>
-        <p className="text-zinc-500 mt-2 font-medium">Status da ponte entre ArchiDecide e Google Cloud.</p>
+        <h2 className="text-4xl font-black text-zinc-900 tracking-tight uppercase italic">Módulo de Inteligência</h2>
+        <p className="text-zinc-500 mt-2 font-medium">Gerencie a conexão do sistema com os servidores de processamento.</p>
       </div>
 
       {!hasKey ? (
-        <div className="bg-amber-50 border border-amber-200 p-10 rounded-[2.5rem] space-y-6 shadow-xl shadow-amber-900/5">
+        <div className="bg-zinc-100 border border-zinc-200 p-10 rounded-[2.5rem] space-y-6">
           <div className="flex items-center gap-5">
-            <span className="text-4xl animate-pulse">📡</span>
+            <span className="text-4xl opacity-50">📡</span>
             <div>
-              <div className="font-black text-amber-900 text-xl uppercase tracking-tight">Variável não detectada</div>
-              <p className="text-sm text-amber-800 font-medium">O Vite não encontrou a chave 'API_KEY' durante o build.</p>
+              <div className="font-black text-zinc-900 text-xl uppercase tracking-tight">Módulo Offline</div>
+              <p className="text-sm text-zinc-500 font-medium">Aguardando ativação dos serviços de inteligência artificial.</p>
             </div>
           </div>
-          <div className="bg-white/50 p-6 rounded-2xl space-y-4 text-sm text-amber-900 font-medium leading-relaxed">
-            <p className="font-bold underline">Ação Necessária na Vercel:</p>
-            <ol className="list-decimal ml-5 space-y-2">
-              <li>Certifique-se que a variável no painel Vercel chama-se exatamente: <strong>API_KEY</strong></li>
-              <li>Vá em <strong>Deployments</strong> no painel da Vercel.</li>
-              <li>Clique nos 3 pontos (...) do deploy atual e selecione <strong>Redeploy</strong>.</li>
-              <li>Marque a opção <strong>"Use existing Build Cache"</strong> (opcional) e confirme.</li>
-            </ol>
+          <div className="bg-white p-6 rounded-2xl text-xs text-zinc-600 font-medium leading-relaxed border border-zinc-100">
+            Caso você seja o administrador desta licença, verifique se a chave de ativação foi inserida corretamente no painel de controle do sistema. Para usuários padrão, entre em contato com seu suporte técnico.
           </div>
         </div>
       ) : (
-        <div className="bg-emerald-50 border border-emerald-200 p-8 rounded-[2rem] flex items-center justify-between shadow-lg shadow-emerald-900/5">
+        <div className="bg-zinc-900 text-white p-8 rounded-[2.5rem] flex items-center justify-between shadow-2xl">
           <div className="flex items-center gap-6">
-            <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white text-2xl shadow-inner shadow-black/20 font-black italic">!</div>
+            <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white text-2xl shadow-lg font-black italic">✓</div>
             <div>
-              <div className="font-black text-emerald-900 text-lg uppercase tracking-tight">Ponte Ativa</div>
-              <p className="text-sm text-emerald-700 font-medium">A API_KEY foi injetada com sucesso pelo processo de build do Vite.</p>
+              <div className="font-black text-white text-lg uppercase tracking-tight">Sistema Conectado</div>
+              <p className="text-sm text-zinc-400 font-medium tracking-wide">Todos os recursos de análise estratégica estão ativos e prontos.</p>
             </div>
           </div>
         </div>
       )}
 
-      <Card className="rounded-[2.5rem] p-10 shadow-2xl border-none ring-1 ring-zinc-100">
+      <Card className="rounded-[2.5rem] p-10 shadow-xl border-none ring-1 ring-zinc-100">
         <div className="space-y-10">
-          <Select 
-            label="Modelo Generativo Ativo" 
-            value={config.model} 
-            onChange={e => setConfig({...config, model: e.target.value})}
-            className="font-bold text-lg h-14"
-          >
-            <option value="gemini-3-flash-preview">Gemini 3 Flash (Recomendado: Rápido e Eficiente)</option>
-            <option value="gemini-3-pro-preview">Gemini 3 Pro (Avançado: Análises Complexas)</option>
-          </Select>
+          <div className="space-y-4">
+             <label className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em]">Motor de Processamento</label>
+             <Select 
+                value={config.model} 
+                onChange={e => setConfig({...config, model: e.target.value})}
+                className="font-bold text-lg h-14 bg-zinc-50 border-none"
+              >
+                <option value="gemini-3-flash-preview">Analista Padrão (Rápido e Preciso)</option>
+                <option value="gemini-3-pro-preview">Analista Sênior (Deep Reasoning / Alta Complexidade)</option>
+              </Select>
+              <p className="text-[10px] text-zinc-400 font-medium">O motor "Sênior" é recomendado para projetos com muitas restrições técnicas ou layouts complexos.</p>
+          </div>
           
-          <div className="p-8 bg-zinc-50 border border-zinc-100 rounded-[2rem] text-sm text-zinc-500 leading-relaxed space-y-4">
-            <div className="flex items-center gap-3 font-black text-zinc-900 uppercase tracking-widest text-[10px]">
-              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-              Segurança do Arquiteto
+          <div className="p-8 bg-zinc-50 border border-zinc-100 rounded-[2rem] text-sm text-zinc-500 leading-relaxed">
+            <div className="flex items-center gap-3 font-black text-zinc-900 uppercase tracking-widest text-[10px] mb-4">
+              <span className="w-2 h-2 bg-zinc-900 rounded-full"></span>
+              Privacidade de Dados
             </div>
-            <p className="text-xs">
-              Seguindo as melhores práticas, sua chave nunca é exposta no código-fonte do GitHub. 
-              Ela reside apenas no ambiente seguro da Vercel e é transcodificada pelo Vite para uso exclusivo no seu navegador.
+            <p className="text-xs leading-relaxed">
+              As informações enviadas para análise são processadas em ambiente criptografado e não são utilizadas para treinamento público de modelos, garantindo o sigilo intelectual do seu projeto.
             </p>
           </div>
 
-          <Button className="w-full py-6 shadow-2xl font-black text-xl hover:scale-[1.02] active:scale-95 transition-all" onClick={handleSave}>
-            {saved ? "CONFIGURAÇÕES ATUALIZADAS ✓" : "GRAVAR PREFERÊNCIAS"}
+          <Button className="w-full py-6 shadow-xl font-black text-xl hover:scale-[1.02] active:scale-95 transition-all" onClick={handleSave}>
+            {saved ? "PREFERÊNCIAS SALVAS ✓" : "ATUALIZAR CONFIGURAÇÃO"}
           </Button>
         </div>
       </Card>
