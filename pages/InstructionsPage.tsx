@@ -4,67 +4,83 @@ import { Card } from '../components/common/UI';
 
 const InstructionsPage: React.FC = () => {
   return (
-    <div className="space-y-8 pb-20 max-w-4xl mx-auto">
-      <div>
-        <h2 className="text-3xl font-bold text-zinc-900">Guia do ArchiDecide</h2>
-        <p className="text-zinc-500 mt-2">Saiba como extrair o máximo potencial da nossa ferramenta de apoio à decisão.</p>
+    <div className="space-y-12 pb-32 max-w-4xl mx-auto px-2">
+      <div className="border-b border-zinc-200 pb-8">
+        <h2 className="text-4xl font-black text-zinc-900 tracking-tighter uppercase italic">Manual de Operação</h2>
+        <p className="text-zinc-500 mt-2 font-medium">Domine a ferramenta e gere relatórios de alto impacto visual e técnico.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        <Card title="1. Gestão de Projetos">
-          <div className="space-y-3 text-zinc-600">
-            <p>Tudo começa na tela de <strong>Projetos</strong>. Aqui você pode criar novos estudos, duplicar análises existentes ou excluir projetos antigos.</p>
-            <ul className="list-disc ml-5 space-y-1">
-              <li><strong>Duplicar:</strong> Útil para criar variações de um mesmo cliente sem perder o histórico original.</li>
-              <li><strong>Armazenamento:</strong> Todos os dados são salvos localmente no seu navegador. Não enviamos seus dados para servidores externos, exceto para a API do Gemini durante a geração de textos.</li>
-            </ul>
-          </div>
-        </Card>
-
-        <Card title="2. Perfil & Requisitos">
-          <div className="space-y-3 text-zinc-600">
-            <p>Nesta etapa, você define quem é o cliente e as características do terreno ou imóvel.</p>
-            <p><strong>Diretrizes Gerais:</strong> Ao clicar em "Gerar com Gemini", a IA analisa o perfil (pets, moradores, estilo, orçamento) e sugere pilares arquitetônicos para guiar sua criação. Você pode editar o texto livremente após a geração.</p>
-          </div>
-        </Card>
-
-        <Card title="3. Plantas (A vs B)">
-          <div className="space-y-3 text-zinc-600">
-            <p>O coração da ferramenta. Frequentemente o arquiteto fica em dúvida entre dois layouts. Aqui você documenta ambos:</p>
-            <ul className="list-disc ml-5 space-y-1">
-              <li>Preencha áreas, pontos fortes e fracos de cada alternativa.</li>
-              <li>Selecione os critérios de decisão (ex: circulação, ventilação).</li>
-              <li><strong>Análise Comparativa:</strong> A IA cria uma argumentação técnica isenta, ajudando você a explicar ao cliente por que uma opção é superior à outra em determinados aspectos.</li>
-            </ul>
-          </div>
-        </Card>
-
-        <Card title="4. Templates de Ambientes">
-          <div className="space-y-3 text-zinc-600">
-            <p>Precisa de um aprofundamento em um cômodo específico? Use os Templates.</p>
-            <p>A IA gera recomendações práticas de mobiliário, iluminação e materiais baseadas no orçamento e estilo definidos para aquele ambiente específico.</p>
-          </div>
-        </Card>
-
-        <Card title="5. Relatório & Entrega">
-          <div className="space-y-3 text-zinc-600">
-            <p>A fase final. O ArchiDecide compila toda a inteligência gerada em um documento PDF profissional.</p>
-            <ul className="list-disc ml-5 space-y-1">
-              <li>O PDF inclui capa, perfil, diretrizes, análise das plantas e estudos de ambientes.</li>
-              <li>O histórico de relatórios fica salvo dentro de cada projeto para download futuro.</li>
-            </ul>
-          </div>
-        </Card>
-
-        <div className="bg-zinc-900 text-white p-6 rounded-xl space-y-4">
-          <h3 className="text-xl font-bold flex items-center gap-2">
-            <span>✨</span> O Papel da Inteligência Artificial
-          </h3>
-          <p className="text-zinc-400 text-sm leading-relaxed">
-            O Gemini não substitui o arquiteto. Ele atua como um <strong>copiloto de argumentação</strong>. 
-            Ele ajuda a transformar suas percepções técnicas em textos claros e persuasivos para o cliente, 
-            garantindo que todas as decisões de projeto estejam fundamentadas nos requisitos iniciais.
+      {/* AVISO CRÍTICO DE ARMAZENAMENTO */}
+      <div className="bg-amber-50 border-2 border-amber-200 p-6 md:p-8 rounded-[2rem] space-y-4 shadow-sm">
+        <div className="flex items-center gap-4 text-amber-900">
+          <span className="text-3xl">⚠️</span>
+          <h3 className="font-black text-lg uppercase tracking-tight">Aviso Importante: Seus Dados</h3>
+        </div>
+        <div className="text-sm text-amber-800 space-y-3 font-medium leading-relaxed">
+          <p>
+            O ArchiDecide utiliza a tecnologia <strong>Local Storage</strong>. Isso significa que todas as informações que você insere ficam salvas <strong>exclusivamente na memória do navegador do aparelho que você está usando agora</strong>.
           </p>
+          <ul className="list-disc ml-5 space-y-1">
+            <li>Se você abrir este site em outro computador, tablet ou celular, os projetos atuais <strong>não estarão lá</strong>.</li>
+            <li>Se você limpar os dados de navegação ou o cache do seu navegador, as informações serão apagadas.</li>
+            <li><strong>Recomendação:</strong> Sempre gere e salve o relatório final em PDF. Ele é a única forma de garantir que seu trabalho esteja seguro e disponível para ser acessado em qualquer lugar.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-8">
+        {/* PASSO 1 */}
+        <div className="flex gap-6 items-start">
+          <span className="text-4xl font-black text-zinc-100 italic select-none">01</span>
+          <Card title="Gestão de Projetos" className="flex-1 rounded-[2rem]">
+            <p className="text-zinc-600 text-sm leading-relaxed">
+              Na tela inicial, você organiza sua carteira. Cada projeto é um "Estudo de Caso" independente. Use o botão <strong>Duplicar</strong> para testar variações de um mesmo cliente sem perder o histórico do estudo original.
+            </p>
+          </Card>
+        </div>
+
+        {/* PASSO 2 */}
+        <div className="flex gap-6 items-start">
+          <span className="text-4xl font-black text-zinc-100 italic select-none">02</span>
+          <Card title="Perfil do Cliente" className="flex-1 rounded-[2rem]">
+            <p className="text-zinc-600 text-sm leading-relaxed">
+              Aqui você define o "Briefing". Informe o estilo, rotina e orçamento. Ao clicar em <strong>Gerar com Gemini</strong>, a IA criará pilares conceituais baseados na psicologia do seu cliente, que servirão de base para o seu relatório técnico.
+            </p>
+          </Card>
+        </div>
+
+        {/* PASSO 3 */}
+        <div className="flex gap-6 items-start">
+          <span className="text-4xl font-black text-zinc-100 italic select-none">03</span>
+          <Card title="Plantas (Alpha vs Beta)" className="flex-1 rounded-[2rem]">
+            <p className="text-zinc-600 text-sm leading-relaxed">
+              Este é o coração da ferramenta. Descreva suas duas ideias de layout (Alpha e Beta). A IA fará o papel de um <strong>revisor técnico isento</strong>, comparando áreas, fluxos e iluminação, ajudando você a provar para o cliente qual opção é a mais viável.
+            </p>
+          </Card>
+        </div>
+
+        {/* PASSO 4 */}
+        <div className="flex gap-6 items-start">
+          <span className="text-4xl font-black text-zinc-100 italic select-none">04</span>
+          <Card title="Templates de Ambientes" className="flex-1 rounded-[2rem]">
+            <p className="text-zinc-600 text-sm leading-relaxed">
+              Use esta seção para detalhar cômodos específicos (Cozinha, Suíte, etc). A IA sugere materiais, mobiliário e iluminação que se encaixam no orçamento definido, poupando seu tempo na redação de especificações técnicas.
+            </p>
+          </Card>
+        </div>
+
+        {/* PASSO 5 */}
+        <div className="flex gap-6 items-start">
+          <span className="text-4xl font-black text-zinc-100 italic select-none">05</span>
+          <Card title="Exportação e Entrega" className="flex-1 rounded-[2rem] bg-zinc-900 text-white border-none shadow-xl">
+            <p className="text-zinc-300 text-sm leading-relaxed">
+              Na aba de <strong>Relatório</strong>, compile tudo. O sistema organiza as 6 páginas do seu estudo editorial. Clique em <strong>Gerar PDF</strong> para baixar o arquivo. Lembre-se: o PDF é o seu produto final e o backup oficial do seu projeto.
+            </p>
+          </Card>
+        </div>
+
+        <div className="p-8 border-2 border-dashed border-zinc-200 rounded-[2.5rem] text-center">
+          <p className="text-zinc-400 text-xs font-black uppercase tracking-[0.3em]">ArchiDecide Professional Workflow v1.6</p>
         </div>
       </div>
     </div>
