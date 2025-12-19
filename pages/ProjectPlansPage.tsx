@@ -54,7 +54,7 @@ const PlanForm: React.FC<{
         </h3>
       </div>
       
-      <div className="p-6 space-y-6 flex-1">
+      <div className="p-6 space-y-8 flex-1">
         {/* Basic Info Row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="sm:col-span-2">
@@ -116,42 +116,43 @@ const PlanForm: React.FC<{
           </div>
         </div>
 
-        {/* Narrative Section */}
-        <div className="space-y-4 pt-2">
+        {/* Technical Concept - Full Width Textarea */}
+        <div className="w-full pt-2">
           <Textarea 
             label="Conceito Técnico" 
             value={currentPlan.observacoes} 
             onChange={e => handleChange('observacoes', e.target.value)}
-            placeholder="Descreva a lógica por trás desta planta..."
-            className="min-h-[80px] text-sm"
+            placeholder="Descreva a lógica por trás desta planta, fluxos, diretrizes de layout..."
+            className="min-h-[120px] w-full text-sm leading-relaxed"
           />
+        </div>
 
-          <div className="grid grid-cols-1 gap-4">
-            <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-2">
-              <label className="text-[10px] font-bold text-emerald-700 uppercase tracking-tighter flex items-center gap-1">
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                Pontos Fortes
-              </label>
-              <textarea 
-                className="w-full bg-transparent border-none focus:ring-0 text-sm p-0 min-h-[80px] text-emerald-900 placeholder:text-emerald-200 resize-none"
-                placeholder="Vantagens desta opção..."
-                value={currentPlan.pontosFortes}
-                onChange={e => handleChange('pontosFortes', e.target.value)}
-              />
-            </div>
+        {/* Narrative Section - Strengths/Weaknesses */}
+        <div className="grid grid-cols-1 gap-4 pt-2">
+          <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-2">
+            <label className="text-[11px] font-bold text-emerald-700 uppercase tracking-widest flex items-center gap-1.5">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+              Pontos Fortes
+            </label>
+            <textarea 
+              className="w-full bg-transparent border-none focus:ring-0 text-sm p-0 min-h-[100px] text-emerald-900 placeholder:text-emerald-200 resize-none leading-relaxed"
+              placeholder="Vantagens desta opção..."
+              value={currentPlan.pontosFortes}
+              onChange={e => handleChange('pontosFortes', e.target.value)}
+            />
+          </div>
 
-            <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-100 space-y-2">
-              <label className="text-[10px] font-bold text-amber-700 uppercase tracking-tighter flex items-center gap-1">
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                Pontos Fracos / Desafios
-              </label>
-              <textarea 
-                className="w-full bg-transparent border-none focus:ring-0 text-sm p-0 min-h-[80px] text-amber-900 placeholder:text-amber-200 resize-none"
-                placeholder="Limitações ou trade-offs..."
-                value={currentPlan.pontosFracos}
-                onChange={e => handleChange('pontosFracos', e.target.value)}
-              />
-            </div>
+          <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-100 space-y-2">
+            <label className="text-[11px] font-bold text-amber-700 uppercase tracking-widest flex items-center gap-1.5">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              Pontos Fracos / Desafios
+            </label>
+            <textarea 
+              className="w-full bg-transparent border-none focus:ring-0 text-sm p-0 min-h-[100px] text-amber-900 placeholder:text-amber-200 resize-none leading-relaxed"
+              placeholder="Limitações ou trade-offs..."
+              value={currentPlan.pontosFracos}
+              onChange={e => handleChange('pontosFracos', e.target.value)}
+            />
           </div>
         </div>
       </div>

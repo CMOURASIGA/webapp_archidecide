@@ -37,7 +37,7 @@ export const Card: React.FC<{ children: React.ReactNode, title?: string, classNa
 );
 
 export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label?: string }> = ({ label, ...props }) => (
-  <div className="space-y-1">
+  <div className="flex flex-col space-y-1 w-full">
     {label && <label className="text-sm font-medium text-zinc-700">{label}</label>}
     <input 
       className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-zinc-900 focus:outline-none transition-all"
@@ -46,18 +46,18 @@ export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { lab
   </div>
 );
 
-export const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string }> = ({ label, ...props }) => (
-  <div className="space-y-1">
+export const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string }> = ({ label, className, ...props }) => (
+  <div className="flex flex-col space-y-1 w-full">
     {label && <label className="text-sm font-medium text-zinc-700">{label}</label>}
     <textarea 
-      className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-zinc-900 focus:outline-none transition-all min-h-[100px]"
+      className={`w-full px-3 py-2 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-zinc-900 focus:outline-none transition-all min-h-[100px] ${className}`}
       {...props} 
     />
   </div>
 );
 
 export const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { label?: string }> = ({ label, children, ...props }) => (
-  <div className="space-y-1">
+  <div className="flex flex-col space-y-1 w-full">
     {label && <label className="text-sm font-medium text-zinc-700">{label}</label>}
     <select 
       className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-zinc-900 focus:outline-none transition-all"
