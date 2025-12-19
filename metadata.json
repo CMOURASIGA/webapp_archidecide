@@ -1,0 +1,5 @@
+{
+  "name": "ArchiDecide MVP",
+  "description": "A decision-support and reporting tool for architects to manage projects, compare floor plans, and generate AI-powered client reports.",
+  "requestFramePermissions": []
+}
