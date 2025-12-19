@@ -1,12 +1,31 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useParams, Link } from 'react-router-dom';
-import { useProjectStore } from '../../store/useProjectStore';
+import { useProjectStore } from '../../store/useProjectStore.ts';
+import { Button } from '../common/UI.tsx';
 
 const MainLayout: React.FC = () => {
   const { projectId } = useParams();
   const { projects } = useProjectStore();
   const currentProject = projects.find(p => p.id === projectId);
+  const [hasApiKey, setHasApiKey] = useState(true);
+
+  useEffect(() => {
+    const checkKey = async () => {
+      if (window.aistudio?.hasSelectedApiKey) {
+        const selected = await window.aistudio.hasSelectedApiKey();
+        setHasApiKey(selected);
+      }
+    };
+    checkKey();
+  }, []);
+
+  const handleSelectKey = async () => {
+    if (window.aistudio?.openSelectKey) {
+      await window.aistudio.openSelectKey();
+      setHasApiKey(true);
+    }
+  };
 
   const menuItems = [
     { label: "Projetos", icon: "📁", path: "/projects" },
@@ -46,6 +65,16 @@ const MainLayout: React.FC = () => {
             </NavLink>
           ))}
         </nav>
+
+        {!hasApiKey && (
+          <div className="p-4 m-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+            <p className="text-[10px] text-amber-800 font-bold uppercase">IA Desativada</p>
+            <p className="text-[10px] text-amber-700">Clique abaixo para ativar as funções de IA.</p>
+            <Button variant="secondary" className="w-full text-[10px] py-1 h-auto bg-white border-amber-300" onClick={handleSelectKey}>
+              Ativar Gemini
+            </Button>
+          </div>
+        )}
 
         <div className="p-4 border-t border-zinc-100 bg-zinc-50/50">
            <div className="text-xs text-zinc-400 font-semibold uppercase tracking-wider mb-2">Sessão Atual</div>
