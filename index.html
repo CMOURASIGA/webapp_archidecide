@@ -19,10 +19,31 @@
     "zustand": "https://esm.sh/zustand@5.0.3?deps=react@19.0.0",
     "jspdf": "https://esm.sh/jspdf@2.5.2",
     "vite": "https://esm.sh/vite@^7.3.0",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "marked": "https://esm.sh/marked@15.0.0"
   }
 }
 </script>
+    <style>
+      .prose h1 { @apply text-3xl font-black mb-6 uppercase italic tracking-tight text-zinc-900; }
+      .prose h2 { @apply text-2xl font-black mt-10 mb-4 uppercase tracking-tight text-zinc-800 border-b-2 border-zinc-100 pb-2; }
+      .prose h3 { @apply text-xl font-bold mt-8 mb-3 text-zinc-800 flex items-center gap-2; }
+      .prose h4 { @apply text-lg font-bold mt-6 mb-2 text-zinc-700; }
+      .prose p { @apply text-zinc-600 leading-relaxed mb-4 text-base; }
+      .prose ul { @apply list-none space-y-2 mb-6; }
+      .prose li { @apply pl-6 relative text-zinc-600; }
+      .prose li::before { content: "→"; @apply absolute left-0 text-emerald-500 font-bold; }
+      .prose strong { @apply font-bold text-zinc-900; }
+      .prose table { @apply w-full border-collapse my-8 rounded-xl overflow-hidden shadow-sm border border-zinc-200; }
+      .prose th { @apply bg-zinc-900 text-white p-4 text-left text-xs font-black uppercase tracking-widest; }
+      .prose td { @apply p-4 border-b border-zinc-100 text-sm text-zinc-600 bg-white; }
+      .prose tr:last-child td { @apply border-b-0; }
+      .prose hr { @apply my-12 border-zinc-100; }
+      
+      .custom-scrollbar-light::-webkit-scrollbar { width: 6px; }
+      .custom-scrollbar-light::-webkit-scrollbar-track { background: transparent; }
+      .custom-scrollbar-light::-webkit-scrollbar-thumb { background: #e4e4e7; border-radius: 10px; }
+    </style>
   </head>
   <body class="bg-zinc-50 text-zinc-900 h-screen overflow-hidden">
     <div id="root"></div>

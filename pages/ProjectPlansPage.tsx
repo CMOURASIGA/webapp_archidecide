@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useProjectStore } from '../store/useProjectStore.ts';
 import { Button, Card, Input, Checkbox } from '../components/common/UI.tsx';
 import { geminiService } from '../services/geminiService.ts';
 import { PlanAlternative, AreaPorAmbiente, ComparisonCriteria } from '../types/project.ts';
+import { marked } from 'marked';
 
 const PlanForm: React.FC<{ 
   plan: PlanAlternative | null, 
@@ -55,7 +56,6 @@ const PlanForm: React.FC<{
       </div>
       
       <div className="p-8 space-y-10">
-        {/* Row 1: Basic Info */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
           <div className="sm:col-span-2">
             <Input 
@@ -75,7 +75,6 @@ const PlanForm: React.FC<{
           />
         </div>
 
-        {/* Row 2: TECHNICAL CONCEPT (CORRIGIDO PARA LARGURA TOTAL) */}
         <div className="block w-full">
           <label className="text-xs font-black text-zinc-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
@@ -85,11 +84,10 @@ const PlanForm: React.FC<{
             className="w-full px-5 py-4 border border-zinc-200 rounded-2xl focus:ring-4 focus:ring-zinc-900/5 focus:border-zinc-900 focus:outline-none transition-all min-h-[160px] text-sm leading-relaxed bg-zinc-50/30 text-zinc-700 placeholder:text-zinc-300 font-medium resize-none"
             value={currentPlan.observacoes} 
             onChange={e => handleChange('observacoes', e.target.value)}
-            placeholder="Descreva a lógica arquitetônica: zoneamento, fluxos, aberturas, e como a planta responde ao briefing..."
+            placeholder="Descreva a lógica arquitetônica..."
           />
         </div>
 
-        {/* Row 3: Environments List */}
         <div className="space-y-5">
           <div className="flex items-center justify-between">
             <label className="text-xs font-black text-zinc-400 uppercase tracking-[0.2em]">Dimensionamento por Ambiente</label>
@@ -133,7 +131,6 @@ const PlanForm: React.FC<{
           </div>
         </div>
 
-        {/* Row 4: Strengths/Weaknesses */}
         <div className="grid grid-cols-1 gap-6 pt-6 border-t border-zinc-100">
           <div className="p-6 bg-emerald-50/50 rounded-3xl border border-emerald-100 shadow-sm group">
             <label className="text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-3 flex items-center gap-2">
@@ -171,6 +168,7 @@ const ProjectPlansPage: React.FC = () => {
   const { projects, updateProject, geminiConfig } = useProjectStore();
   const project = projects.find(p => p.id === projectId);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   if (!project) return <div>Projeto não encontrado.</div>;
 
@@ -197,6 +195,7 @@ const ProjectPlansPage: React.FC = () => {
       return;
     }
     setIsGenerating(true);
+    setIsEditMode(false);
     try {
       const text = await geminiService.generateComparativeAnalysis(geminiConfig || { model: 'gemini-3-flash-preview', lastUpdated: '' }, project);
       updateProject(project.id, prev => ({
@@ -220,6 +219,11 @@ const ProjectPlansPage: React.FC = () => {
     }
   };
 
+  const renderedAnalysis = useMemo(() => {
+    if (!comparison.analiseComparativa?.content) return null;
+    return marked.parse(comparison.analiseComparativa.content);
+  }, [comparison.analiseComparativa?.content]);
+
   return (
     <div className="space-y-16 pb-32">
       <div className="border-b border-zinc-200 pb-10">
@@ -242,47 +246,90 @@ const ProjectPlansPage: React.FC = () => {
         />
       </div>
 
-      <Card className="border-2 border-zinc-100 shadow-2xl overflow-hidden bg-white rounded-[2.5rem] border-none ring-1 ring-zinc-100">
-        <div className="grid grid-cols-1 lg:grid-cols-12">
-          <div className="lg:col-span-4 p-12 bg-zinc-50/80 border-r border-zinc-100 space-y-10">
+      <Card className="shadow-2xl overflow-hidden bg-white rounded-[2.5rem] border-none ring-1 ring-zinc-100">
+        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[700px]">
+          {/* Sidebar Filtros */}
+          <div className="lg:col-span-3 p-10 bg-zinc-50 border-r border-zinc-100 space-y-10">
             <h3 className="text-xs font-black text-zinc-900 uppercase tracking-[0.25em] flex items-center gap-3">
               <span className="w-2 h-2 bg-zinc-900 rounded-full animate-pulse"></span>
-              Filtro de Análise IA
+              Parâmetros de Análise
             </h3>
             <div className="space-y-5">
               <Checkbox label="Fluxos e Setorização" checked={comparison.criterios.circulacao} onChange={e => handleCriteriaChange('circulacao', e.target.checked)} />
               <Checkbox label="Integração Social" checked={comparison.criterios.integracao} onChange={e => handleCriteriaChange('integracao', e.target.checked)} />
               <Checkbox label="Zoneamento Íntimo" checked={comparison.criterios.privacidade} onChange={e => handleCriteriaChange('privacidade', e.target.checked)} />
-              <Checkbox label="Luminotécnica Natural" checked={comparison.criterios.iluminacao} onChange={e => handleCriteriaChange('iluminacao', e.target.checked)} />
+              <Checkbox label="Iluminação Natural" checked={comparison.criterios.iluminacao} onChange={e => handleCriteriaChange('iluminacao', e.target.checked)} />
               <Checkbox label="Eficiência Térmica" checked={comparison.criterios.ventilacao} onChange={e => handleCriteriaChange('ventilacao', e.target.checked)} />
             </div>
-            <Button className="w-full py-6 font-black text-lg shadow-2xl hover:scale-[1.03] transition-all bg-zinc-900" onClick={handleGenerateAnalysis} isLoading={isGenerating}>🚀 ANALISAR COM IA</Button>
+            <div className="pt-6 border-t border-zinc-200 space-y-3">
+               <Button className="w-full py-5 font-black text-sm shadow-xl hover:scale-[1.03] transition-all bg-zinc-900" onClick={handleGenerateAnalysis} isLoading={isGenerating}>🚀 ANALISAR COM IA</Button>
+               {comparison.analiseComparativa && (
+                 <button 
+                   onClick={() => setIsEditMode(!isEditMode)}
+                   className="w-full text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors"
+                 >
+                   {isEditMode ? "💾 Salvar & Visualizar" : "📝 Modo Edição"}
+                 </button>
+               )}
+            </div>
           </div>
-          <div className="lg:col-span-8 bg-zinc-900 p-12 min-h-[500px] flex flex-col shadow-[inset_0_0_80px_rgba(0,0,0,0.4)]">
-             <div className="text-emerald-500 font-mono text-[10px] mb-8 flex justify-between items-center border-b border-zinc-800 pb-5">
-               <span className="font-bold tracking-[0.3em]">RELATÓRIO DE INTELIGÊNCIA ARQUITETÔNICA</span>
-               <span className="opacity-40 tracking-widest font-black uppercase">Alpha vs Beta</span>
+
+          {/* Área de Visualização do Relatório */}
+          <div className="lg:col-span-9 bg-white p-16 flex flex-col relative">
+             <div className="absolute top-8 right-12 opacity-20 pointer-events-none select-none">
+                <span className="text-7xl font-black italic text-zinc-100 uppercase tracking-tighter">CONFIDENCIAL</span>
              </div>
-             <div className="flex-1">
+             
+             <div className="text-zinc-400 font-mono text-[10px] mb-12 flex justify-between items-center border-b border-zinc-100 pb-5">
+               <span className="font-bold tracking-[0.3em] uppercase">Relatório de Inteligência Arquitetônica v{project.version}</span>
+               <span className="tracking-widest font-black uppercase">ArchiDecide Studio</span>
+             </div>
+
+             <div className="flex-1 overflow-y-auto custom-scrollbar-light pr-4">
                {comparison.analiseComparativa ? (
-                 <textarea 
-                   className="w-full h-full bg-transparent text-emerald-50/90 border-none focus:ring-0 font-mono text-sm leading-loose resize-none custom-scrollbar-light"
-                   value={comparison.analiseComparativa.content}
-                   onChange={e => updateProject(project.id, prev => ({
-                     ...prev,
-                     comparison: {
-                       ...comparison,
-                       analiseComparativa: { ...comparison.analiseComparativa!, content: e.target.value }
-                     }
-                   }))}
-                 />
+                 isEditMode ? (
+                   <textarea 
+                     className="w-full h-full bg-zinc-50 p-8 rounded-2xl border border-zinc-200 text-zinc-800 border-none focus:ring-2 focus:ring-zinc-900 font-mono text-sm leading-loose resize-none"
+                     value={comparison.analiseComparativa.content}
+                     onChange={e => updateProject(project.id, prev => ({
+                       ...prev,
+                       comparison: {
+                         ...comparison,
+                         analiseComparativa: { ...comparison.analiseComparativa!, content: e.target.value }
+                       }
+                     }))}
+                     placeholder="Edite o conteúdo Markdown aqui..."
+                   />
+                 ) : (
+                   <div 
+                     className="prose max-w-none animate-in fade-in slide-in-from-bottom-4 duration-700"
+                     dangerouslySetInnerHTML={{ __html: renderedAnalysis as string }} 
+                   />
+                 )
                ) : (
-                 <div className="text-zinc-700 font-mono text-xs h-full flex flex-col items-center justify-center italic text-center space-y-6">
-                   <div className="text-5xl opacity-10 animate-bounce">⚖️</div>
-                   <p className="max-w-xs leading-relaxed uppercase tracking-widest font-black opacity-30">Selecione os parâmetros e inicie o processamento da argumentação técnica.</p>
+                 <div className="h-full flex flex-col items-center justify-center text-center space-y-8 opacity-40">
+                   <div className="text-6xl grayscale">🏛️</div>
+                   <div className="space-y-2">
+                     <p className="max-w-md leading-relaxed uppercase tracking-[0.3em] font-black text-xs">Aguardando Processamento de Dados</p>
+                     <p className="text-[10px] font-bold text-zinc-400 italic">Selecione os critérios e inicie a argumentação técnica.</p>
+                   </div>
                  </div>
                )}
              </div>
+
+             {comparison.analiseComparativa && !isEditMode && (
+               <div className="mt-12 pt-8 border-t border-zinc-100 flex justify-between items-center">
+                 <div className="flex gap-4">
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-black text-zinc-300 uppercase">Consultor Responsável</span>
+                      <span className="text-xs font-bold text-zinc-600">ArchiDecide Gemini-3</span>
+                    </div>
+                 </div>
+                 <div className="text-[9px] font-black text-emerald-500 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-widest">
+                   Análise Validada Técnica
+                 </div>
+               </div>
+             )}
           </div>
         </div>
       </Card>
