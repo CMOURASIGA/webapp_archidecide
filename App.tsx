@@ -1,7 +1,8 @@
 
 import React, { useEffect } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout.tsx';
+import LandingPage from './pages/LandingPage.tsx';
 import ProjectsPage from './pages/ProjectsPage.tsx';
 import InstructionsPage from './pages/InstructionsPage.tsx';
 import ProjectProfilePage from './pages/ProjectProfilePage.tsx';
@@ -21,8 +22,11 @@ const App: React.FC = () => {
   return (
     <HashRouter>
       <Routes>
+        {/* Rota da Tela Inicial (Fora do Layout Principal) */}
+        <Route path="/" element={<LandingPage />} />
+
+        {/* Rotas do Sistema (Dentro do Layout com Sidebar) */}
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Navigate to="/projects" replace />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/instructions" element={<InstructionsPage />} />
           <Route path="/projects/:projectId/profile" element={<ProjectProfilePage />} />
