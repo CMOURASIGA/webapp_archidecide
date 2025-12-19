@@ -1,27 +1,30 @@
 
 import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet, useParams, Link } from 'react-router-dom';
+import { NavLink, Outlet, useParams, Link, useLocation } from 'react-router-dom';
 import { useProjectStore } from '../../store/useProjectStore.ts';
 import { Button } from '../common/UI.tsx';
 
 const MainLayout: React.FC = () => {
   const { projectId } = useParams();
   const { projects } = useProjectStore();
+  const location = useLocation();
   const currentProject = projects.find(p => p.id === projectId);
   const [hasApiKey, setHasApiKey] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const checkKey = () => {
       // @ts-ignore
       const key = process.env.API_KEY;
-      if (key && key !== "" && key !== "undefined") {
-        setHasApiKey(true);
-      } else {
-        setHasApiKey(false);
-      }
+      setHasApiKey(!!(key && key !== "" && key !== "undefined"));
     };
     checkKey();
   }, []);
+
+  // Fecha o menu mobile ao mudar de rota
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location]);
 
   const menuItems = [
     { label: "Projetos", icon: "📁", path: "/projects" },
@@ -34,10 +37,29 @@ const MainLayout: React.FC = () => {
   ];
 
   return (
-    <div className="flex h-screen w-full bg-zinc-50 overflow-hidden font-sans">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-zinc-200 flex flex-col">
-        <div className="p-6 border-b border-zinc-100">
+    <div className="flex h-screen w-full bg-[#fcfcfc] overflow-hidden font-sans flex-col md:flex-row">
+      
+      {/* Mobile Header */}
+      <header className="md:hidden h-16 bg-white border-b border-zinc-200 px-4 flex items-center justify-between z-50">
+        <h1 className="text-lg font-black text-zinc-900 flex items-center gap-2">
+          <span className="bg-zinc-900 text-white w-7 h-7 flex items-center justify-center rounded-lg">AD</span>
+          ArchiDecide
+        </h1>
+        <button 
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 text-zinc-600 focus:outline-none"
+        >
+          {isMobileMenuOpen ? "✕" : "☰"}
+        </button>
+      </header>
+
+      {/* Sidebar (Desktop & Mobile Overlay) */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-zinc-200 flex flex-col transition-transform duration-300 ease-in-out
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:relative md:translate-x-0
+      `}>
+        <div className="hidden md:block p-6 border-b border-zinc-100">
           <h1 className="text-xl font-black text-zinc-900 flex items-center gap-2 tracking-tight">
             <span className="bg-zinc-900 text-white w-8 h-8 flex items-center justify-center rounded-lg shadow-sm">AD</span>
             ArchiDecide
@@ -63,48 +85,51 @@ const MainLayout: React.FC = () => {
         </nav>
 
         {!hasApiKey && (
-          <div className="p-4 m-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs">⚠️</span>
-              <p className="text-[10px] text-amber-900 font-black uppercase tracking-wider">Aguardando IA</p>
-            </div>
-            <p className="text-[9px] text-amber-700 leading-tight font-medium">Faça o Redeploy no Vercel com a variável API_KEY.</p>
+          <div className="p-4 m-4 bg-amber-50 border border-amber-200 rounded-2xl">
+            <p className="text-[9px] text-amber-900 font-black uppercase tracking-wider mb-1">Aguardando IA</p>
+            <p className="text-[9px] text-amber-700 leading-tight">Configure a API_KEY na Vercel.</p>
           </div>
         )}
 
         <div className="p-4 border-t border-zinc-100 bg-zinc-50/50">
-           <div className="text-[10px] text-zinc-400 font-black uppercase tracking-[0.15em] mb-2">Projeto Ativo</div>
+           <div className="text-[9px] text-zinc-400 font-black uppercase tracking-[0.15em] mb-1">Projeto Ativo</div>
            <div className="text-xs font-bold truncate text-zinc-700">
              {currentProject ? currentProject.nome : "Selecione um projeto"}
            </div>
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* Overlay for Mobile Sidebar */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-30 md:hidden" 
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-white border-b border-zinc-200 px-8 flex items-center justify-between shadow-sm z-10">
+        {/* Desktop Header Content (visible only on desktop or as part of content on mobile) */}
+        <header className="hidden md:flex h-16 bg-white border-b border-zinc-200 px-8 items-center justify-between shadow-sm z-10">
           <div className="flex items-center gap-4">
             {currentProject && (
               <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                 <span className="font-bold text-zinc-800 tracking-tight">{currentProject.nome}</span>
-                <span className="px-2 py-0.5 bg-zinc-100 border border-zinc-200 rounded-md text-[9px] font-black text-zinc-400 uppercase tracking-tighter">VERSÃO {currentProject.version}</span>
+                <span className="px-2 py-0.5 bg-zinc-100 border border-zinc-200 rounded-md text-[9px] font-black text-zinc-400 uppercase">V{currentProject.version}</span>
               </div>
             )}
           </div>
-
-          <div className="flex items-center gap-3">
-            {projectId && (
-               <Link to={`/projects/${projectId}/report`}>
-                  <button className="bg-zinc-900 text-white px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg active:scale-95">
-                    Exportar Relatório
-                  </button>
-               </Link>
-            )}
-          </div>
+          {projectId && (
+             <Link to={`/projects/${projectId}/report`}>
+                <button className="bg-zinc-900 text-white px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg">
+                  Exportar PDF
+                </button>
+             </Link>
+          )}
         </header>
 
-        <main className="flex-1 overflow-y-auto p-10 max-w-6xl mx-auto w-full custom-scrollbar">
+        <main className="flex-1 overflow-y-auto p-4 md:p-10 w-full max-w-7xl mx-auto custom-scrollbar">
           <Outlet />
         </main>
       </div>

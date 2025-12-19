@@ -17,7 +17,7 @@ export const geminiService = {
     
     REGRAS DE ESCRITA:
     - Use títulos claros para: Conceito, Decisões de Layout, Prioridades Técnicas e Pontos de Atenção.
-    - Seja conciso (bullets). Estilo editorial de luxo.
+    - Seja conciso (bullets). Estilo editorial de luxo. Máximo 4 itens por seção.
     - Responda em Português (Brasil).`;
 
     const response = await ai.models.generateContent({
@@ -36,7 +36,12 @@ export const geminiService = {
       contents: `Você é um estrategista em viabilidade arquitetônica. Compare criticamente a Planta Alpha e a Planta Beta.
       Alpha: ${JSON.stringify(project.planA)}
       Beta: ${JSON.stringify(project.planB)}
-      Critérios: ${JSON.stringify(project.comparison?.criterios)}`,
+      Critérios: ${JSON.stringify(project.comparison?.criterios)}
+      
+      FOCO DO RELATÓRIO:
+      - Recomendação clara.
+      - Análise de riscos e como mitigá-los.
+      - Texto curto e executivo para clientes de alto padrão.`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -46,7 +51,7 @@ export const geminiService = {
               type: Type.OBJECT,
               properties: {
                 planta: { type: Type.STRING, description: "Alpha ou Beta" },
-                motivo: { type: Type.STRING, description: "Uma justificativa executiva poderosa de no máximo 3 linhas." }
+                motivo: { type: Type.STRING, description: "Justificativa executiva de no máximo 3 linhas." }
               },
               required: ["planta", "motivo"]
             },
@@ -67,9 +72,9 @@ export const geminiService = {
                 type: Type.OBJECT,
                 properties: {
                   criterio: { type: Type.STRING },
-                  analiseAlpha: { type: Type.STRING, description: "Análise técnica concisa (max 4 linhas)." },
-                  analiseBeta: { type: Type.STRING, description: "Análise técnica concisa (max 4 linhas)." },
-                  conclusao: { type: Type.STRING, description: "Uma frase de veredito definitiva." }
+                  analiseAlpha: { type: Type.STRING, description: "Análise concisa (max 3 linhas)." },
+                  analiseBeta: { type: Type.STRING, description: "Análise concisa (max 3 linhas)." },
+                  conclusao: { type: Type.STRING, description: "Veredito rápido." }
                 },
                 required: ["criterio", "analiseAlpha", "analiseBeta", "conclusao"]
               }
