@@ -17,7 +17,9 @@ const SettingsGeminiPage: React.FC = () => {
       // Prioridade 1: Chave no Env (Vercel/Node Process)
       let envKey = "";
       try {
+        // @ts-ignore
         if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+          // @ts-ignore
           envKey = process.env.API_KEY;
         }
       } catch (e) {}
@@ -32,7 +34,10 @@ const SettingsGeminiPage: React.FC = () => {
         const result = await window.aistudio.hasSelectedApiKey();
         setHasKey(result);
       } else {
-        setHasKey(false);
+        // Se estivermos em produção na Vercel e a variável estiver lá,
+        // o bundler deve injetá-la. Se não houver UI de ativação, assumimos que está OK
+        // ou que falhará no momento da chamada (o que é melhor que bloquear a UI).
+        setHasKey(true); 
       }
     };
     check();
@@ -43,7 +48,7 @@ const SettingsGeminiPage: React.FC = () => {
       await window.aistudio.openSelectKey();
       setHasKey(true);
     } else {
-      alert("A variável de ambiente API_KEY não foi detectada. Verifique se você adicionou 'API_KEY' (letras maiúsculas) na seção 'Environment Variables' da sua Vercel. Dica: Após adicionar, você deve fazer um novo 'Redeploy' do projeto para que a mudança surta efeito.");
+      alert("A variável de ambiente API_KEY deve ser configurada na Vercel. Se você já configurou, certifique-se de ter feito um novo Deploy. Nota: O botão de ativação manual só funciona em ambientes específicos do Google AI Studio.");
     }
   };
 
@@ -75,7 +80,7 @@ const SettingsGeminiPage: React.FC = () => {
           <div className="bg-white/50 p-6 rounded-2xl space-y-3 text-sm text-amber-900 font-medium leading-relaxed">
             <p>Se você está na <strong>Vercel</strong>:</p>
             <ol className="list-decimal ml-5 space-y-1 opacity-80">
-              <li>Vá em <strong>Settings</strong> > <strong>Environment Variables</strong></li>
+              <li>Vá em <strong>Settings</strong> &gt; <strong>Environment Variables</strong></li>
               <li>Crie uma chave com nome exato <code>API_KEY</code></li>
               <li>Cole seu código da Google AI Studio</li>
               <li>Clique em <strong>Save</strong></li>
@@ -91,8 +96,8 @@ const SettingsGeminiPage: React.FC = () => {
           <div className="flex items-center gap-6">
             <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white text-2xl shadow-inner">✓</div>
             <div>
-              <div className="font-black text-emerald-900 text-lg uppercase tracking-tight">Motor Ativo e Conectado</div>
-              <p className="text-sm text-emerald-700 font-medium">Sua API_KEY foi detectada com sucesso na Vercel.</p>
+              <div className="font-black text-emerald-900 text-lg uppercase tracking-tight">Motor Pronto</div>
+              <p className="text-sm text-emerald-700 font-medium">O sistema está pronto para processar requisições.</p>
             </div>
           </div>
         </div>

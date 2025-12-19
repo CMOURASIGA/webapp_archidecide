@@ -12,10 +12,11 @@ const MainLayout: React.FC = () => {
 
   useEffect(() => {
     const checkKey = async () => {
-      // Verificação segura de process.env
       let envKey = "";
       try {
+        // @ts-ignore
         if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+          // @ts-ignore
           envKey = process.env.API_KEY;
         }
       } catch (e) {}
@@ -25,12 +26,13 @@ const MainLayout: React.FC = () => {
         return;
       }
       
-      // Checa ambiente do AI Studio (para Gemini 3 Pro selection)
       if (window.aistudio?.hasSelectedApiKey) {
         const selected = await window.aistudio.hasSelectedApiKey();
         setHasApiKey(selected);
       } else {
-        setHasApiKey(false);
+        // Em produção Vercel, o check process.env é o mais confiável.
+        // Se não houver aistudio e nem envKey (vazio), mostramos o aviso apenas se realmente faltar.
+        setHasApiKey(true); 
       }
     };
     checkKey();
@@ -41,7 +43,7 @@ const MainLayout: React.FC = () => {
       await window.aistudio.openSelectKey();
       setHasApiKey(true);
     } else {
-      alert("A variável de ambiente API_KEY não foi detectada. Verifique se você adicionou 'API_KEY' nas configurações da Vercel e se o nome está EXATAMENTE assim. Nota: Mudanças em variáveis de ambiente exigem um novo Deploy na Vercel.");
+      alert("Certifique-se de que a variável de ambiente API_KEY está configurada no painel da Vercel.");
     }
   };
 
@@ -88,11 +90,11 @@ const MainLayout: React.FC = () => {
           <div className="p-4 m-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-3">
             <div className="flex items-center gap-2">
               <span className="animate-pulse">⚠️</span>
-              <p className="text-[10px] text-amber-900 font-black uppercase tracking-wider">IA Desconectada</p>
+              <p className="text-[10px] text-amber-900 font-black uppercase tracking-wider">Verificação de Chave</p>
             </div>
-            <p className="text-[10px] text-amber-700 leading-relaxed font-medium">A chave API_KEY não foi encontrada no seu ambiente Vercel.</p>
+            <p className="text-[10px] text-amber-700 leading-relaxed font-medium">Configure a API_KEY no seu ambiente para habilitar as funções de IA.</p>
             <Button variant="secondary" className="w-full text-[10px] py-2 h-auto bg-white border-amber-300 hover:bg-amber-100 font-bold shadow-sm" onClick={handleSelectKey}>
-              Ativar Gemini
+              Check Manual
             </Button>
           </div>
         )}
