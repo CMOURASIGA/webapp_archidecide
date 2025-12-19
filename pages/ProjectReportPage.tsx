@@ -7,7 +7,7 @@ import { pdfService } from '../services/pdfService';
 
 const ProjectReportPage: React.FC = () => {
   const { projectId } = useParams();
-  const { projects, updateProject, addReport } = useProjectStore();
+  const { projects, addReport } = useProjectStore();
   const project = projects.find(p => p.id === projectId);
   
   const [obs, setObs] = useState("");
@@ -19,11 +19,7 @@ const ProjectReportPage: React.FC = () => {
     setIsGenerating(true);
     try {
       const { blob, meta } = await pdfService.generateReport(project);
-      
-      // Save report meta to project
       addReport(project.id, meta);
-
-      // Download
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -36,6 +32,21 @@ const ProjectReportPage: React.FC = () => {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleDownloadBackup = () => {
+    // Para facilitar a busca, o nome segue: CLIENTE_PROJETO_BACKUP.json
+    const fileName = `${(project.cliente || "SEM_CLIENTE").replace(/\s+/g, '_')}_${project.nome.replace(/\s+/g, '_')}_BACKUP.json`.toUpperCase();
+    
+    // Criamos um backup apenas deste projeto inserido em um array para compatibilidade com o importador
+    const backupData = JSON.stringify([project]);
+    const blob = new Blob([backupData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -77,6 +88,25 @@ const ProjectReportPage: React.FC = () => {
               GERAR PDF IMPECÁVEL
             </Button>
           </Card>
+
+          {/* NOVA SEÇÃO DE SEGURANÇA E PORTABILIDADE */}
+          <div className="bg-blue-50 border-2 border-blue-200 p-8 rounded-[2.5rem] space-y-4">
+            <div className="flex items-center gap-3 text-blue-900">
+              <span className="text-2xl">💾</span>
+              <h3 className="font-black uppercase tracking-tight">Segurança e Portabilidade</h3>
+            </div>
+            <p className="text-xs text-blue-800 font-medium leading-relaxed">
+              Deseja salvar o arquivo de backup para abrir este projeto em outro computador no futuro? 
+              O arquivo <strong>.json</strong> guarda todos os dados editáveis que não podem ser recuperados apenas pelo PDF.
+            </p>
+            <Button 
+              variant="secondary" 
+              onClick={handleDownloadBackup}
+              className="w-full border-blue-300 text-blue-900 hover:bg-blue-100 font-black uppercase tracking-widest text-[10px] py-4 rounded-2xl"
+            >
+              Baixar Backup do Projeto (.json)
+            </Button>
+          </div>
 
           <Card title="Nota de Encerramento (Opcional)" className="rounded-[2rem]">
             <Textarea 
