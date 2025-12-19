@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useProjectStore } from '../store/useProjectStore';
-import { Button, Card, Input, Select, Textarea, Checkbox } from '../components/common/UI';
+import { Button, Card, Input, Select, Textarea } from '../components/common/UI';
 import { geminiService } from '../services/geminiService';
 import { ClientProfile, PropertyInfo, ClientType, BudgetLevel, PropertyType } from '../types/project';
 
@@ -56,14 +56,13 @@ const ProjectProfilePage: React.FC = () => {
   };
 
   const handleGenerateGuidelines = async () => {
-    if (!geminiConfig) {
-      alert("Configure o Gemini primeiro nas configurações.");
-      navigate("/settings/gemini");
+    if (!process.env.API_KEY) {
+      alert("Chave API não configurada no ambiente.");
       return;
     }
     setIsGenerating(true);
     try {
-      const text = await geminiService.generateGuidelines(geminiConfig, project);
+      const text = await geminiService.generateGuidelines(geminiConfig || { model: 'gemini-3-pro-preview', lastUpdated: '' }, project);
       updateProject(project.id, (prev) => ({
         ...prev,
         diretrizesGerais: {
@@ -77,7 +76,7 @@ const ProjectProfilePage: React.FC = () => {
       }));
     } catch (err) {
       console.error(err);
-      alert("Falha ao gerar diretrizes. Verifique sua chave API.");
+      alert("Falha ao gerar diretrizes. Verifique a configuração da sua API KEY.");
     } finally {
       setIsGenerating(false);
     }
@@ -86,7 +85,7 @@ const ProjectProfilePage: React.FC = () => {
   const prioritiesList = ["Integração", "Privacidade", "Iluminação Natural", "Ventilação", "Acessibilidade", "Silêncio", "Área Verde", "Sustentabilidade"];
 
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-8 pb-32">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card title="Perfil do Cliente">
           <div className="space-y-4">
@@ -142,13 +141,13 @@ const ProjectProfilePage: React.FC = () => {
       <Card title="Diretrizes do Projeto">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-zinc-500">Gere ou escreva os pilares fundamentais para o desenvolvimento do projeto.</p>
+            <p className="text-sm text-zinc-500">Defina os pilares fundamentais para o desenvolvimento do projeto.</p>
             <Button variant="secondary" onClick={handleGenerateGuidelines} isLoading={isGenerating}>
               ✨ Gerar com Gemini
             </Button>
           </div>
           <Textarea 
-            className="min-h-[300px] font-mono text-sm"
+            className="min-h-[400px] w-full font-mono text-sm leading-relaxed"
             value={project.diretrizesGerais?.content || ""}
             onChange={e => updateProject(project.id, prev => ({
               ...prev,
@@ -165,6 +164,14 @@ const ProjectProfilePage: React.FC = () => {
           />
         </div>
       </Card>
+
+      <div className="flex justify-end pt-4">
+        <Link to={`/projects/${projectId}/plans`}>
+          <Button className="px-8 py-3 shadow-lg">
+            Próximo Passo: Comparar Plantas 📐
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 };

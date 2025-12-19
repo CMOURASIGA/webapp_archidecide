@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useProjectStore } from '../store/useProjectStore';
 import { Button, Card, Input, Textarea, Checkbox } from '../components/common/UI';
 import { geminiService } from '../services/geminiService';
@@ -108,14 +108,14 @@ const ProjectPlansPage: React.FC = () => {
       alert("Preencha ambas as alternativas antes de comparar.");
       return;
     }
-    if (!geminiConfig) {
-      alert("Configure o Gemini.");
+    if (!process.env.API_KEY) {
+      alert("Chave API não configurada.");
       return;
     }
 
     setIsGenerating(true);
     try {
-      const text = await geminiService.generateComparativeAnalysis(geminiConfig, project);
+      const text = await geminiService.generateComparativeAnalysis(geminiConfig || { model: 'gemini-3-pro-preview', lastUpdated: '' }, project);
       updateProject(project.id, prev => ({
         ...prev,
         comparison: {
@@ -139,7 +139,7 @@ const ProjectPlansPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-8 pb-32">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <PlanForm title="Alternativa A" plan={project.planA} onUpdate={data => handleUpdatePlan('planA', data)} />
         <PlanForm title="Alternativa B" plan={project.planB} onUpdate={data => handleUpdatePlan('planB', data)} />
@@ -166,26 +166,36 @@ const ProjectPlansPage: React.FC = () => {
             <div className="space-y-4">
                <label className="text-sm font-semibold text-zinc-900">Resultado da Análise</label>
                <Textarea 
-                className="h-full min-h-[250px] font-mono text-xs" 
+                className="h-full min-h-[300px] font-mono text-xs leading-relaxed" 
                 value={comparison.analiseComparativa?.content || ""} 
                 onChange={e => updateProject(project.id, prev => ({
                   ...prev,
                   comparison: {
                     ...comparison,
                     analiseComparativa: {
-                      ...comparison.analiseComparativa!,
+                      id: comparison.analiseComparativa?.id || crypto.randomUUID(),
+                      title: "Análise Comparativa",
                       content: e.target.value,
                       source: "manual",
+                      createdAt: comparison.analiseComparativa?.createdAt || new Date().toISOString(),
                       updatedAt: new Date().toISOString()
                     }
                   }
                 }))}
-                placeholder="Aguardando geração da IA..."
+                placeholder="Aguardando geração da IA ou preencha manualmente..."
                />
             </div>
           </div>
         </div>
       </Card>
+
+      <div className="flex justify-end pt-4">
+        <Link to={`/projects/${projectId}/templates`}>
+          <Button className="px-8 py-3 shadow-lg">
+            Próximo Passo: Estudos de Ambientes 🛋️
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 };
