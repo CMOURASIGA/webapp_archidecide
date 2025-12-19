@@ -9,48 +9,23 @@ const SettingsGeminiPage: React.FC = () => {
     model: 'gemini-3-flash-preview',
     lastUpdated: ''
   });
-  const [hasKey, setHasKey] = useState(true);
+  const [hasKey, setHasKey] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    const check = async () => {
-      // Prioridade 1: Chave no Env (Vercel/Node Process)
-      let envKey = "";
-      try {
-        // @ts-ignore
-        if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-          // @ts-ignore
-          envKey = process.env.API_KEY;
-        }
-      } catch (e) {}
-
-      if (envKey && envKey !== "") {
+    const checkKey = () => {
+      // @ts-ignore - process.env.API_KEY injetado pelo Vite
+      const key = process.env.API_KEY;
+      
+      // Valida se a chave foi injetada e não é um valor vazio ou undefined string
+      if (key && key !== "" && key !== "undefined") {
         setHasKey(true);
-        return;
-      }
-
-      // Prioridade 2: AI Studio Safe Activation
-      if (window.aistudio?.hasSelectedApiKey) {
-        const result = await window.aistudio.hasSelectedApiKey();
-        setHasKey(result);
       } else {
-        // Se estivermos em produção na Vercel e a variável estiver lá,
-        // o bundler deve injetá-la. Se não houver UI de ativação, assumimos que está OK
-        // ou que falhará no momento da chamada (o que é melhor que bloquear a UI).
-        setHasKey(true); 
+        setHasKey(false);
       }
     };
-    check();
+    checkKey();
   }, []);
-
-  const handleActivate = async () => {
-    if (window.aistudio?.openSelectKey) {
-      await window.aistudio.openSelectKey();
-      setHasKey(true);
-    } else {
-      alert("A variável de ambiente API_KEY deve ser configurada na Vercel. Se você já configurou, certifique-se de ter feito um novo Deploy. Nota: O botão de ativação manual só funciona em ambientes específicos do Google AI Studio.");
-    }
-  };
 
   const handleSave = () => {
     setGeminiConfig({
@@ -64,40 +39,36 @@ const SettingsGeminiPage: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto space-y-12 pb-20">
       <div className="border-b border-zinc-200 pb-8">
-        <h2 className="text-4xl font-black text-zinc-900 tracking-tight uppercase italic">Configurações de Inteligência</h2>
-        <p className="text-zinc-500 mt-2 font-medium">Gerencie a conexão segura e o comportamento dos modelos generativos.</p>
+        <h2 className="text-4xl font-black text-zinc-900 tracking-tight uppercase italic">Conectividade IA</h2>
+        <p className="text-zinc-500 mt-2 font-medium">Status da ponte entre ArchiDecide e Google Cloud.</p>
       </div>
 
       {!hasKey ? (
         <div className="bg-amber-50 border border-amber-200 p-10 rounded-[2.5rem] space-y-6 shadow-xl shadow-amber-900/5">
           <div className="flex items-center gap-5">
-            <span className="text-4xl">🔌</span>
+            <span className="text-4xl animate-pulse">📡</span>
             <div>
-              <div className="font-black text-amber-900 text-xl uppercase tracking-tight">API Key não identificada</div>
-              <p className="text-sm text-amber-800 font-medium">O sistema não conseguiu localizar sua chave de acesso.</p>
+              <div className="font-black text-amber-900 text-xl uppercase tracking-tight">Variável não detectada</div>
+              <p className="text-sm text-amber-800 font-medium">O Vite não encontrou a chave 'API_KEY' durante o build.</p>
             </div>
           </div>
-          <div className="bg-white/50 p-6 rounded-2xl space-y-3 text-sm text-amber-900 font-medium leading-relaxed">
-            <p>Se você está na <strong>Vercel</strong>:</p>
-            <ol className="list-decimal ml-5 space-y-1 opacity-80">
-              <li>Vá em <strong>Settings</strong> &gt; <strong>Environment Variables</strong></li>
-              <li>Crie uma chave com nome exato <code>API_KEY</code></li>
-              <li>Cole seu código da Google AI Studio</li>
-              <li>Clique em <strong>Save</strong></li>
-              <li><strong>Importante:</strong> Faça um novo Deploy para ativar a variável no navegador.</li>
+          <div className="bg-white/50 p-6 rounded-2xl space-y-4 text-sm text-amber-900 font-medium leading-relaxed">
+            <p className="font-bold underline">Ação Necessária na Vercel:</p>
+            <ol className="list-decimal ml-5 space-y-2">
+              <li>Certifique-se que a variável no painel Vercel chama-se exatamente: <strong>API_KEY</strong></li>
+              <li>Vá em <strong>Deployments</strong> no painel da Vercel.</li>
+              <li>Clique nos 3 pontos (...) do deploy atual e selecione <strong>Redeploy</strong>.</li>
+              <li>Marque a opção <strong>"Use existing Build Cache"</strong> (opcional) e confirme.</li>
             </ol>
           </div>
-          <Button className="w-full bg-amber-900 hover:bg-amber-950 text-white py-5 font-black text-lg shadow-lg active:scale-95 transition-all" onClick={handleActivate}>
-            TENTAR ATIVAR MANUALMENTE
-          </Button>
         </div>
       ) : (
         <div className="bg-emerald-50 border border-emerald-200 p-8 rounded-[2rem] flex items-center justify-between shadow-lg shadow-emerald-900/5">
           <div className="flex items-center gap-6">
-            <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white text-2xl shadow-inner">✓</div>
+            <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white text-2xl shadow-inner shadow-black/20 font-black italic">!</div>
             <div>
-              <div className="font-black text-emerald-900 text-lg uppercase tracking-tight">Motor Pronto</div>
-              <p className="text-sm text-emerald-700 font-medium">O sistema está pronto para processar requisições.</p>
+              <div className="font-black text-emerald-900 text-lg uppercase tracking-tight">Ponte Ativa</div>
+              <p className="text-sm text-emerald-700 font-medium">A API_KEY foi injetada com sucesso pelo processo de build do Vite.</p>
             </div>
           </div>
         </div>
@@ -106,34 +77,28 @@ const SettingsGeminiPage: React.FC = () => {
       <Card className="rounded-[2.5rem] p-10 shadow-2xl border-none ring-1 ring-zinc-100">
         <div className="space-y-10">
           <Select 
-            label="Seletor de Inteligência" 
+            label="Modelo Generativo Ativo" 
             value={config.model} 
             onChange={e => setConfig({...config, model: e.target.value})}
             className="font-bold text-lg h-14"
           >
-            <option value="gemini-3-flash-preview">Gemini 3 Flash (Otimizado para Diretrizes)</option>
-            <option value="gemini-3-pro-preview">Gemini 3 Pro (Raciocínio Espacial Avançado)</option>
+            <option value="gemini-3-flash-preview">Gemini 3 Flash (Recomendado: Rápido e Eficiente)</option>
+            <option value="gemini-3-pro-preview">Gemini 3 Pro (Avançado: Análises Complexas)</option>
           </Select>
           
           <div className="p-8 bg-zinc-50 border border-zinc-100 rounded-[2rem] text-sm text-zinc-500 leading-relaxed space-y-4">
             <div className="flex items-center gap-3 font-black text-zinc-900 uppercase tracking-widest text-[10px]">
               <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-              Guia de Escolha de Modelo
+              Segurança do Arquiteto
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <div className="space-y-2">
-                 <p className="font-black text-zinc-800 uppercase text-[10px]">Modo Flash</p>
-                 <p className="text-xs">Uso cotidiano. Excelente para gerar diretrizes de projeto e recomendações rápidas de mobiliário em ambientes isolados.</p>
-               </div>
-               <div className="space-y-2">
-                 <p className="font-black text-zinc-800 uppercase text-[10px]">Modo Pro</p>
-                 <p className="text-xs">Análise profunda. Recomendado para o comparativo de plantas A vs B, onde o modelo precisa analisar fluxos e áreas complexas.</p>
-               </div>
-            </div>
+            <p className="text-xs">
+              Seguindo as melhores práticas, sua chave nunca é exposta no código-fonte do GitHub. 
+              Ela reside apenas no ambiente seguro da Vercel e é transcodificada pelo Vite para uso exclusivo no seu navegador.
+            </p>
           </div>
 
           <Button className="w-full py-6 shadow-2xl font-black text-xl hover:scale-[1.02] active:scale-95 transition-all" onClick={handleSave}>
-            {saved ? "CONFIGURAÇÕES SALVAS ✓" : "GRAVAR PREFERÊNCIAS"}
+            {saved ? "CONFIGURAÇÕES ATUALIZADAS ✓" : "GRAVAR PREFERÊNCIAS"}
           </Button>
         </div>
       </Card>

@@ -11,41 +11,17 @@ const MainLayout: React.FC = () => {
   const [hasApiKey, setHasApiKey] = useState(true);
 
   useEffect(() => {
-    const checkKey = async () => {
-      let envKey = "";
-      try {
-        // @ts-ignore
-        if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-          // @ts-ignore
-          envKey = process.env.API_KEY;
-        }
-      } catch (e) {}
-
-      if (envKey && envKey !== "") {
+    const checkKey = () => {
+      // @ts-ignore
+      const key = process.env.API_KEY;
+      if (key && key !== "" && key !== "undefined") {
         setHasApiKey(true);
-        return;
-      }
-      
-      if (window.aistudio?.hasSelectedApiKey) {
-        const selected = await window.aistudio.hasSelectedApiKey();
-        setHasApiKey(selected);
       } else {
-        // Em produção Vercel, o check process.env é o mais confiável.
-        // Se não houver aistudio e nem envKey (vazio), mostramos o aviso apenas se realmente faltar.
-        setHasApiKey(true); 
+        setHasApiKey(false);
       }
     };
     checkKey();
   }, []);
-
-  const handleSelectKey = async () => {
-    if (window.aistudio?.openSelectKey) {
-      await window.aistudio.openSelectKey();
-      setHasApiKey(true);
-    } else {
-      alert("Certifique-se de que a variável de ambiente API_KEY está configurada no painel da Vercel.");
-    }
-  };
 
   const menuItems = [
     { label: "Projetos", icon: "📁", path: "/projects" },
@@ -87,15 +63,12 @@ const MainLayout: React.FC = () => {
         </nav>
 
         {!hasApiKey && (
-          <div className="p-4 m-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-3">
+          <div className="p-4 m-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-2">
             <div className="flex items-center gap-2">
-              <span className="animate-pulse">⚠️</span>
-              <p className="text-[10px] text-amber-900 font-black uppercase tracking-wider">Verificação de Chave</p>
+              <span className="text-xs">⚠️</span>
+              <p className="text-[10px] text-amber-900 font-black uppercase tracking-wider">Aguardando IA</p>
             </div>
-            <p className="text-[10px] text-amber-700 leading-relaxed font-medium">Configure a API_KEY no seu ambiente para habilitar as funções de IA.</p>
-            <Button variant="secondary" className="w-full text-[10px] py-2 h-auto bg-white border-amber-300 hover:bg-amber-100 font-bold shadow-sm" onClick={handleSelectKey}>
-              Check Manual
-            </Button>
+            <p className="text-[9px] text-amber-700 leading-tight font-medium">Faça o Redeploy no Vercel com a variável API_KEY.</p>
           </div>
         )}
 

@@ -2,10 +2,13 @@
 import { GoogleGenAI } from "@google/genai";
 import { GeminiConfig, Project, ClientProfile, TemplateInput } from "../types/project.ts";
 
+/**
+ * Serviço de integração com Google Gemini.
+ * O valor de process.env.API_KEY é substituído pelo Vite durante o build.
+ */
 export const geminiService = {
   generateGuidelines: async (config: GeminiConfig, project: Project) => {
-    // Strictly following the rule: Must use new GoogleGenAI({ apiKey: process.env.API_KEY })
-    // @ts-ignore
+    // @ts-ignore - process.env.API_KEY é injetado pelo vite.config.ts
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
     const prompt = `Você é um consultor sênior de arquitetura. Com base nos dados abaixo, gere diretrizes gerais de projeto.
@@ -21,7 +24,6 @@ export const geminiService = {
   },
 
   generateComparativeAnalysis: async (config: GeminiConfig, project: Project) => {
-    // Strictly following the rule: Must use new GoogleGenAI({ apiKey: process.env.API_KEY })
     // @ts-ignore
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
@@ -39,7 +41,6 @@ export const geminiService = {
   },
 
   generateTemplateRecommendations: async (config: GeminiConfig, templateInput: TemplateInput, profile: ClientProfile | null) => {
-    // Strictly following the rule: Must use new GoogleGenAI({ apiKey: process.env.API_KEY })
     // @ts-ignore
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
